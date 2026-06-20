@@ -1,0 +1,43 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model DiagnosticReport {
+  id          String   @id @default(cuid())
+  computerName      String
+  osVersion         String?
+  osBuild           String?
+  cpuModel          String?
+  cpuCores          Int?
+  totalRAMMB        Int?
+  totalStorageGB    Float?
+  gpuModel          String?
+  gpuDriver         String?
+  
+  // Collected diagnostic data (JSON stored as text)
+  systemInfo        String?   // JSON string
+  hardwareInfo      String?   // JSON string
+  eventLogs         String?   // JSON string
+  diskHealth        String?   // JSON string
+  networkInfo       String?   // JSON string
+  servicesStatus    String?   // JSON string
+  startupPrograms   String?   // JSON string
+  
+  // User-reported symptoms
+  symptoms          String?   // JSON string of symptom descriptions
+  
+  // Analysis results
+  issuesFound       String?   // JSON string of detected issues
+  solutions         String?   // JSON string of recommended solutions
+  severityScore     Int?      // 0-100, higher = more critical
+  
+  // Metadata
+  status            String    @default("pending") // pending, analyzing, completed
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+}
