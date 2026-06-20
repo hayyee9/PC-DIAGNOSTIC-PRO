@@ -117,22 +117,20 @@ try {
 
     $TotalStorageGB = 0
     $FreeStorageGB = 0
-    $DiskInfo = @()
+    $MaxDiskUsage = 0
 
     foreach ($Disk in $Disks) {
         $TotalStorageGB += [math]::Round($Disk.Size / 1GB, 1)
         $FreeStorageGB += [math]::Round($Disk.FreeSpace / 1GB, 1)
-        $DiskInfo += @{
-            drive = $Disk.DeviceID
-            totalGB = [math]::Round($Disk.Size / 1GB, 1)
-            freeGB = [math]::Round($Disk.FreeSpace / 1GB, 1)
-            usedPercent = if ($Disk.Size -gt 0) { [math]::Round((($Disk.Size - $Disk.FreeSpace) / $Disk.Size) * 100, 1) } else { 0 }
+        if ($Disk.Size -gt 0) {
+            $pct = [math]::Round((($Disk.Size - $Disk.FreeSpace) / $Disk.Size) * 100, 1)
+            if ($pct -gt $MaxDiskUsage) { $MaxDiskUsage = $pct }
         }
     }
 
     $DiagnosticData.totalStorageGB = $TotalStorageGB
     $DiagnosticData.freeStorageGB = $FreeStorageGB
-    $DiagnosticData.diskUsage = if ($DiskInfo.Count -gt 0) { ($DiskInfo | Measure-Object -Property usedPercent -Maximum).Maximum } else { 0 }
+    $DiagnosticData.diskUsage = $MaxDiskUsage
 
     # Disk Type
     $DiagnosticData.diskType = "Unknown"
