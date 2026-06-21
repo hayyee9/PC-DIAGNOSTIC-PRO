@@ -1189,19 +1189,33 @@ export function analyzeDiagnostic(data: DiagnosticData): AnalysisResult {
     }
     
     // BSOD
-    if (data.bsodHistory && data.bsodHistory.length > 0) {
+    if (data.bsodHistory && Array.isArray(data.bsodHistory) && data.bsodHistory.length > 0) {
       for (const bsod of data.bsodHistory) {
-        const bsodCode = typeof bsod === 'string' ? bsod : bsod.code;
+        // Safe extraction: handle string, object with .code, or fallback
+        let bsodCode = '';
+        if (typeof bsod === 'string') {
+          bsodCode = bsod;
+        } else if (bsod && typeof bsod === 'object') {
+          bsodCode = String(bsod.code ?? '');
+          // If code is still empty, try other common fields
+          if (!bsodCode && bsod.errorCode) bsodCode = String(bsod.errorCode);
+          if (!bsodCode && bsod.BugCheckCode) bsodCode = String(bsod.BugCheckCode);
+          if (!bsodCode && bsod.message) bsodCode = String(bsod.message);
+        } else {
+          bsodCode = String(bsod ?? '');
+        }
         const bsodLower = bsodCode.toLowerCase();
-        // Check against specific BSOD codes
-        if (knownIssue.id === 'ram-defective' && (bsodLower.includes('memory_management') || bsodLower.includes('page_fault'))) {
-          matchedIndicators.push(`BSOD: ${bsodCode}`);
-        }
-        if (knownIssue.id === 'gpu-driver-crash' && (bsodLower.includes('nvlddmkm') || bsodLower.includes('video') || bsodLower.includes('display'))) {
-          matchedIndicators.push(`BSOD: ${bsodCode}`);
-        }
-        if (knownIssue.id === 'driver-corrupted' && bsodLower.includes('driver')) {
-          matchedIndicators.push(`BSOD: ${bsodCode}`);
+        if (bsodLower) {
+          // Check against specific BSOD codes
+          if (knownIssue.id === 'ram-defective' && (bsodLower.includes('memory_management') || bsodLower.includes('page_fault'))) {
+            matchedIndicators.push(`BSOD: ${bsodCode}`);
+          }
+          if (knownIssue.id === 'gpu-driver-crash' && (bsodLower.includes('nvlddmkm') || bsodLower.includes('video') || bsodLower.includes('display'))) {
+            matchedIndicators.push(`BSOD: ${bsodCode}`);
+          }
+          if (knownIssue.id === 'driver-corrupted' && bsodLower.includes('driver')) {
+            matchedIndicators.push(`BSOD: ${bsodCode}`);
+          }
         }
       }
       // General BSOD detection for the BSOD issue

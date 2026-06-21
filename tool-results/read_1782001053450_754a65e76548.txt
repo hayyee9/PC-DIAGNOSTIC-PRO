@@ -1,0 +1,1364 @@
+     1→// ============================================================
+     2→// PC Diagnostic Knowledge Base & Analysis Engine
+     3→// Menyimpan database masalah, gejala, dan solusi Windows 10/11
+     4→// ============================================================
+     5→
+     6→export interface DiagnosticIssue {
+     7→  id: string;
+     8→  category: string;
+     9→  title: string;
+    10→  severity: "critical" | "high" | "medium" | "low";
+    11→  symptoms: string[];
+    12→  indicators: string[];
+    13→  description: string;
+    14→  solutions: Solution[];
+    15→}
+    16→
+    17→export interface Solution {
+    18→  title: string;
+    19→  steps: string[];
+    20→  difficulty: "mudah" | "sedang" | "lanjutan";
+    21→  requiresReboot: boolean;
+    22→  estimatedTime: string;
+    23→  successRate: number;
+    24→}
+    25→
+    26→// ============================================================
+    27→// KNOWLEDGE BASE - Database Masalah Komputer Windows 10/11
+    28→// ============================================================
+    29→
+    30→export const KNOWLEDGE_BASE: DiagnosticIssue[] = [
+    31→  // ==================== CPU & PROCESSOR ====================
+    32→  {
+    33→    id: "cpu-overheating",
+    34→    category: "CPU & Processor",
+    35→    title: "CPU Overheating (Suhu CPU Terlalu Tinggi)",
+    36→    severity: "critical",
+    37→    symptoms: [
+    38→      "Komputer sering mati sendiri tanpa peringatan",
+    39→      "Performa sangat lambat saat berat",
+    40→      "Fan berbunyi sangat keras terus-menerus",
+    41→      "Komputer tidak bisa boot (thermal shutdown)"
+    42→    ],
+    43→    indicators: [
+    44→      "cpuTemperature > 90",
+    45→      "highFanSpeed",
+    46→      "thermalThrottling"
+    47→    ],
+    48→    description: "CPU mengalami overheating yang dapat menyebabkan kerusakan permanen jika tidak ditangani. Biasanya disebabkan oleh pasta thermal yang sudah kering, fan yang rusak, atau sirkulasi udara yang buruk di casing.",
+    49→    solutions: [
+    50→      {
+    51→        title: "Bersihkan Debu dari Heatsink & Fan CPU",
+    52→        steps: [
+    53→          "Matikan komputer dan cabut kabel power",
+    54→          "Buka casing komputer",
+    55→          "Gunakan kaleng udara bertekanan untuk membersihkan debu dari heatsink CPU",
+    56→          "Bersihkan juga fan CPU dari debu yang menempel",
+    57→          "Pastikan kipas bisa berputar dengan bebas",
+    58→          "Tutup casing dan nyalakan kembali"
+    59→        ],
+    60→        difficulty: "sedang",
+    61→        requiresReboot: false,
+    62→        estimatedTime: "15-30 menit",
+    63→        successRate: 60
+    64→      },
+    65→      {
+    66→        title: "Ganti Pasta Thermal CPU",
+    67→        steps: [
+    68→          "Matikan komputer dan cabut kabel power",
+    69→          "Lepas heatsink dari CPU (hati-hati, jangan merusak motherboard)",
+    70→          "Bersihkan sisa pasta thermal lama menggunakan alkohol isopropil dan kain mikrofiber",
+    71→          "Oleskan pasta thermal baru (ukuran sebesar biji kacang polong di tengah CPU)",
+    72→          "Pasang kembali heatsink dengan tekanan merata",
+    73→          "Tutup casing dan nyalakan kembali"
+    74→        ],
+    75→        difficulty: "lanjutan",
+    76→        requiresReboot: false,
+    77→        estimatedTime: "30-45 menit",
+    78→        successRate: 85
+    79→      },
+    80→      {
+    81→        title: "Perbaiki Sirkulasi Udara Casing",
+    82→        steps: [
+    83→          "Pastikan komputer tidak ditempatkan di ruang sempit tanpa ventilasi",
+    84→          "Periksa apakah semua fan casing berfungsi",
+    85→          "Atur kabel agar tidak menghalangi aliran udara",
+    86→          "Pertimbangkan menambahkan fan intake/exhaust tambahan",
+    87→          "Pastikan intake fan tidak terhalang oleh debu"
+    88→        ],
+    89→        difficulty: "mudah",
+    90→        requiresReboot: false,
+    91→        estimatedTime: "15-20 menit",
+    92→        successRate: 50
+    93→      }
+    94→    ]
+    95→  },
+    96→  {
+    97→    id: "cpu-high-usage",
+    98→    category: "CPU & Processor",
+    99→    title: "CPU Usage Selalu Tinggi (100%)",
+   100→    severity: "high",
+   101→    symptoms: [
+   102→      "Komputer sangat lambat dalam semua tugas",
+   103→      "Task Manager menunjukkan CPU selalu di 90-100%",
+   104→      "Fan selalu berputar kencang",
+   105→      "Aplikasi sangat lama untuk membuka atau merespons"
+   106→    ],
+   107→    indicators: [
+   108→      "cpuUsage > 90",
+   109→      "systemResponsiveness < 50",
+   110→      "highDPCorInterrupt"
+   111→    ],
+   112→    description: "Penggunaan CPU yang terus-menerus tinggi bisa disebabkan oleh proses nakal (rogue process), malware, driver yang bermasalah, atau Windows Update yang berjalan di background. Ini bukan masalah hardware melainkan masalah software.",
+   113→    solutions: [
+   114→      {
+   115→        title: "Identifikasi & Hentikan Proses Penyebab",
+   116→        steps: [
+   117→          "Buka Task Manager (Ctrl+Shift+Esc)",
+   118→          "Klik tab 'Details' untuk melihat proses yang memakan CPU",
+   119→          "Sortir berdasarkan kolom 'CPU' (klik header kolom)",
+   120→          "Klik kanan proses yang penggunaan CPU-nya tinggi",
+   121→          "Pilih 'End Task' untuk menghentikannya",
+   122→          "Perhatikan nama proses untuk investigasi lebih lanjut"
+   123→        ],
+   124→        difficulty: "mudah",
+   125→        requiresReboot: false,
+   126→        estimatedTime: "5-10 menit",
+   127→        successRate: 70
+   128→      },
+   129→      {
+   130→        title: "Scan & Hapus Malware",
+   131→        steps: [
+   132→          "Jalankan Windows Security (Built-in antivirus)",
+   133→          "Klik 'Virus & threat protection'",
+   134→          "Pilih 'Quick scan' terlebih dahulu",
+   135→          "Jika ditemukan, lakukan 'Full scan' untuk pembersihan menyeluruh",
+   136→          "Atau gunakan Malwarebytes Free sebagai scanner tambahan",
+   137→          "Setelah scan selesai, restart komputer"
+   138→        ],
+   139→        difficulty: "mudah",
+   140→        requiresReboot: true,
+   141→        estimatedTime: "30-60 menit",
+   142→        successRate: 75
+   143→      },
+   144→      {
+   145→        title: "Perbaiki Windows System Files",
+   146→        steps: [
+   147→          "Buka Command Prompt sebagai Administrator",
+   148→          "Jalankan: sfc /scannow (tunggu hingga selesai, bisa 15-30 menit)",
+   149→          "Setelah selesai, jalankan: DISM /Online /Cleanup-Image /RestoreHealth",
+   150→          "Tunggu proses DISM selesai (bisa 30-60 menit)",
+   151→          "Restart komputer",
+   152→          "Periksa kembali penggunaan CPU di Task Manager"
+   153→        ],
+   154→        difficulty: "mudah",
+   155→        requiresReboot: true,
+   156→        estimatedTime: "60-90 menit",
+   157→        successRate: 65
+   158→      }
+   159→    ]
+   160→  },
+   161→
+   162→  // ==================== RAM / MEMORY ====================
+   163→  {
+   164→    id: "ram-insufficient",
+   165→    category: "RAM & Memory",
+   166→    title: "RAM Tidak Cukup (Memory Low)",
+   167→    severity: "high",
+   168→    symptoms: [
+   169→      "Komputer sangat lambat saat membuka banyak aplikasi",
+   170→      "Muncul notifikasi 'Your computer is low on memory'",
+   171→      "Aplikasi sering not responding atau force close",
+   172→      "Hard disk selalu bekerja keras (100% disk usage)"
+   173→    ],
+   174→    indicators: [
+   175→      "availableRAM < 1000",
+   176→      "memoryUsage > 90",
+   177→      "pageFileUsage > 80"
+   178→    ],
+   179→    description: "RAM yang tidak mencukupi menyebabkan Windows menggunakan pagefile (virtual memory) di hard disk yang jauh lebih lambat dari RAM fisik. Ini adalah penyebab paling umum dari komputer yang terasa sangat lambat, terutama pada PC dengan 4GB RAM atau kurang.",
+   180→    solutions: [
+   181→      {
+   182→        title: "Tutup Aplikasi yang Tidak Diperlukan",
+   183→        steps: [
+   184→          "Buka Task Manager (Ctrl+Shift+Esc)",
+   185→          "Klik tab 'Processes'",
+   186→          "Sortir berdasarkan kolom 'Memory'",
+   187→          "Klik kanan aplikasi yang tidak digunakan dan pilih 'End Task'",
+   188→          "Nonaktifkan auto-start aplikasi di tab 'Startup'",
+   189→          "Klik kanan aplikasi yang tidak perlu auto-start > Disable"
+   190→        ],
+   191→        difficulty: "mudah",
+   192→        requiresReboot: false,
+   193→        estimatedTime: "5 menit",
+   194→        successRate: 40
+   195→      },
+   196→      {
+   197→        title: "Optimalkan Penggunaan Visual Effects",
+   198→        steps: [
+   199→          "Buka Start Menu > ketik 'Performance' > pilih 'Adjust the appearance and performance of Windows'",
+   200→          "Di tab Visual Effects, pilih 'Adjust for best performance'",
+   201→          "Atau pilih 'Custom' dan centang hanya: 'Show thumbnails instead of icons', 'Smooth edges of screen fonts'",
+   202→          "Klik Apply > OK",
+   203→          "Restart komputer untuk perubahan efek penuh"
+   204→        ],
+   205→        difficulty: "mudah",
+   206→        requiresReboot: true,
+   207→        estimatedTime: "10 menit",
+   208→        successRate: 30
+   209→      },
+   210→      {
+   211→        title: "Tambah Kapasitas RAM",
+   212→        steps: [
+   213→          "Periksa tipe RAM yang komputer gunakan (DDR3, DDR4, DDR5)",
+   214→          "Buka Task Manager > tab 'Performance' > 'Memory' untuk melihat tipe & slot",
+   215→          "Pastikan ada slot RAM kosong di motherboard",
+   216→          "Beli RAM tambahan dengan spesifikasi yang sama (frekuensi & tipe)",
+   217→          "Pasang RAM baru di slot kosong (perhatikan garis notch)",
+   218→          "Nyalakan komputer dan periksa di Task Manager bahwa RAM terdeteksi"
+   219→        ],
+   220→        difficulty: "sedang",
+   221→        requiresReboot: false,
+   222→        estimatedTime: "15-30 menit",
+   223→        successRate: 95
+   224→      }
+   225→    ]
+   226→  },
+   227→  {
+   228→    id: "ram-defective",
+   229→    category: "RAM & Memory",
+   230→    title: "RAM Rusak / Defective",
+   231→    severity: "critical",
+   232→    symptoms: [
+   233→      "Blue Screen of Death (BSOD) dengan error MEMORY_MANAGEMENT",
+   234→      "Komputer restart sendiri secara acak",
+   235→      "File sering corrupt tanpa alasan jelas",
+   236→      "Aplikasi crash dengan error yang tidak konsisten"
+   237→    ],
+   238→    indicators: [
+   239→      "bsodCode contains MEMORY_MANAGEMENT",
+   240→      "bsodCode contains PAGE_FAULT_IN_NONPAGED_AREA",
+   241→      "randomRestarts",
+   242→      "fileCorruption"
+   243→    ],
+   244→    description: "RAM yang rusak adalah salah satu penyebab terberat masalah komputer yang sulit dikenali karena gejalanya mirip dengan banyak masalah lain. Gejala bisa random dan tidak konsisten, membuat diagnosis manual sangat sulit dilakukan.",
+   245→    solutions: [
+   246→      {
+   247→        title: "Jalankan Windows Memory Diagnostic",
+   248→        steps: [
+   249→          "Klik Start > ketik 'Windows Memory Diagnostic' > Enter",
+   250→          "Pilih 'Restart now and check for problems'",
+   251→          "Komputer akan restart dan memulai diagnostic",
+   252→          "Tunggu proses selesai (biasanya 10-20 menit)",
+   253→          "Setelah restart, cek notifikasi hasil di system tray",
+   254→          "Jika ditemukan masalah, lanjutkan ke solusi berikutnya"
+   255→        ],
+   256→        difficulty: "mudah",
+   257→        requiresReboot: true,
+   258→        estimatedTime: "20-30 menit",
+   259→        successRate: 50
+   260→      },
+   261→      {
+   262→        title: "Test RAM Satu per Satu",
+   263→        steps: [
+   264→          "Matikan komputer dan buka casing",
+   265→          "Jika ada 2+ stick RAM, lepaskan semua kecuali satu",
+   266→          "Nyalakan komputer dan gunakan normal selama beberapa hari",
+   267→          "Jika masalah tidak muncul, stick yang terpasang kemungkinan baik",
+   268→          "Ganti dengan stick lain dan ulangi test",
+   269→          "Stick yang menyebabkan masalah saat dipasang = RAM rusak"
+   270→        ],
+   271→        difficulty: "sedang",
+   272→        requiresReboot: false,
+   273→        estimatedTime: "30 menit + observasi",
+   274→        successRate: 90
+   275→      },
+   276→      {
+   277→        title: "Ganti RAM yang Rusak",
+   278→        steps: [
+   279→          "Identifikasi stick RAM yang rusak dari solusi di atas",
+   280→          "Catat spesifikasi RAM (tipe, kecepatan, kapasitas)",
+   281→          "Beli RAM pengganti dengan spesifikasi identik",
+   282→          "Lepas RAM lama dan pasang yang baru",
+   283→          "Nyalakan komputer dan verifikasi di BIOS/Task Manager"
+   284→        ],
+   285→        difficulty: "sedang",
+   286→        requiresReboot: false,
+   287→        estimatedTime: "15-20 menit",
+   288→        successRate: 100
+   289→      }
+   290→    ]
+   291→  },
+   292→
+   293→  // ==================== STORAGE / DISK ====================
+   294→  {
+   295→    id: "disk-failing",
+   296→    category: "Storage & Disk",
+   297→    title: "Hard Disk / SSD Mulai Rusak (Failing)",
+   298→    severity: "critical",
+   299→    symptoms: [
+   300→      "Komputer sangat lambat terutama saat membuka file",
+   301→      "Sering muncul error 'Delayed Write Failed'",
+   302→      "File tiba-tiba hilang atau corrupt",
+   303→      "Klik-klik atau bunyi aneh dari hard disk",
+   304→      "BSOD dengan error DISK-related"
+   305→    ],
+   306→    indicators: [
+   307→      "smartStatus != OK",
+   308→      "reallocatedSectorsCount > 0",
+   309→      "pendingSectorCount > 0",
+   310→      "diskReadErrors > 0",
+   311→      "diskTemperature > 60"
+   312→    ],
+   313→    description: "Storage yang mulai rusak (failing) adalah masalah paling berbahaya karena bisa menyebabkan kehilangan data permanen. SMART (Self-Monitoring, Analysis, and Reporting Technology) memberikan peringatan dini sebelum disk benar-benar mati, tetapi banyak orang mengabaikan indikator ini.",
+   314→    solutions: [
+   315→      {
+   316→        title: "BACKUP DATA SEGERA (PRIORITAS UTAMA)",
+   317→        steps: [
+   318→          "SEGERA backup semua data penting ke drive eksternal atau cloud",
+   319→          "Prioritaskan: dokumen, foto, video, file kerja",
+   320→          "Jangan menyimpan file baru ke disk yang dicurigai rusak",
+   321→          "Gunakan robocopy untuk backup bulk: robocopy C:\\Data D:\\Backup /MIR /Z",
+   322→          "Setelah backup selesai, baru lanjutkan ke solusi di bawah",
+   323→          "CATATAN: Jangan menunda backup! Disk bisa mati kapan saja"
+   324→        ],
+   325→        difficulty: "mudah",
+   326→        requiresReboot: false,
+   327→        estimatedTime: "Bervariasi tergantung jumlah data",
+   328→        successRate: 100
+   329→      },
+   330→      {
+   331→        title: "Cek SMART Status Detail",
+   332→        steps: [
+   333→          "Download dan install CrystalDiskInfo (gratis)",
+   334→          "Buka aplikasi dan lihat status disk (Good/Caution/Bad)",
+   335→          "Perhatikan attribute: Reallocated Sectors, Pending Sectors, Uncorrectable Sectors",
+   336→          "Jika ada nilai > 0 pada attribute di atas, disk sudah mulai rusak",
+   337→          "Periksa juga temperatur disk (normal: 30-50°C, warning: > 55°C)",
+   338→          "Screenshot hasilnya sebagai dokumentasi"
+   339→        ],
+   340→        difficulty: "mudah",
+   341→        requiresReboot: false,
+   342→        estimatedTime: "10 menit",
+   343→        successRate: 90
+   344→      },
+   345→      {
+   346→        title: "Ganti Disk dengan yang Baru",
+   347→        steps: [
+   348→          "Beli SSD/HDD baru (disarankan SSD untuk performa)",
+   349→          "Clone disk lama ke disk baru menggunakan Macrium Reflect (gratis)",
+   350→          "Atau install Windows fresh ke disk baru dan restore data dari backup",
+   351→          "Jika menggunakan clone: buka Macrium Reflect > Clone this disk > pilih disk baru",
+   352→          "Setelah clone selesai, ganti disk lama dengan yang baru",
+   353→          "Boot dan verifikasi semua data dan sistem berjalan normal"
+   354→        ],
+   355→        difficulty: "sedang",
+   356→        requiresReboot: true,
+   357→        estimatedTime: "60-120 menit",
+   358→        successRate: 100
+   359→      }
+   360→    ]
+   361→  },
+   362→  {
+   363→    id: "disk-100-usage",
+   364→    category: "Storage & Disk",
+   365→    title: "Disk Usage Selalu 100%",
+   366→    severity: "high",
+   367→    symptoms: [
+   368→      "Task Manager menunjukkan disk usage 100% terus-menerus",
+   369→      "Komputer sangat lambat terutama saat boot",
+   370→      "Loading aplikasi sangat lama",
+   371→      "Kursor sering berubah menjadi loading circle"
+   372→    ],
+   373→    indicators: [
+   374→      "diskUsage > 95",
+   375→      "slowBoot",
+   376→      "highDiskQueueLength"
+   377→    ],
+   378→    description: "Disk usage 100% di Windows 10/11 adalah masalah yang sangat umum. Penyebabnya bisa beragam: Windows Update di background, SuperFetch/SysMain yang agresif, antivirus scanning, atau disk yang memang sudah lemah (terutama HDD lama). Pada SSD masalah ini biasanya lebih ringan.",
+   379→    solutions: [
+   380→      {
+   381→        title: "Nonaktifkan SysMain (SuperFetch)",
+   382→        steps: [
+   383→          "Buka Start Menu > ketik 'Services' > Enter",
+   384→          "Cari 'SysMain' di daftar services",
+   385→          "Klik kanan > Properties",
+   386→          "Ubah Startup type menjadi 'Disabled'",
+   387→          "Klik 'Stop' untuk menghentikan service",
+   388→          "Klik Apply > OK"
+   389→        ],
+   390→        difficulty: "mudah",
+   391→        requiresReboot: true,
+   392→        estimatedTime: "5 menit",
+   393→        successRate: 60
+   394→      },
+   395→      {
+   396→        title: "Periksa & Hentikan Windows Update Background",
+   397→        steps: [
+   398→          "Buka Settings > Update & Security > Windows Update",
+   399→          "Klik 'Pause updates' untuk sementara menghentikan auto-update",
+   400→          "Buka Services > cari 'Windows Update'",
+   401→          "Klik kanan > Stop (sementara)",
+   402→          "Periksa apakah disk usage turun setelah menghentikan Windows Update",
+   403→          "Jika ya, tunggu update selesai atau jadwalkan update di waktu idle"
+   404→        ],
+   405→        difficulty: "mudah",
+   406→        requiresReboot: false,
+   407→        estimatedTime: "10 menit",
+   408→        successRate: 50
+   409→      },
+   410→      {
+   411→        title: "Upgrade ke SSD (Jika masih menggunakan HDD)",
+   412→        steps: [
+   413→          "Jika komputer masih menggunakan HDD, upgrade ke SSD akan mengatasi masalah ini secara drastis",
+   414→          "SSD memiliki kecepatan baca/tulis 5-10x lebih cepat dari HDD",
+   415→          "Clone OS dari HDD ke SSD menggunakan Macrium Reflect",
+   416→          "Atau install fresh Windows di SSD baru",
+   417→          "Setelah upgrade, disk usage 100% biasanya hilang total"
+   418→        ],
+   419→        difficulty: "sedang",
+   420→        requiresReboot: true,
+   421→        estimatedTime: "60-120 menit",
+   422→        successRate: 95
+   423→      }
+   424→    ]
+   425→  },
+   426→
+   427→  // ==================== DRIVER ====================
+   428→  {
+   429→    id: "driver-corrupted",
+   430→    category: "Driver & Software",
+   431→    title: "Driver Corrupt atau Tidak Kompatibel",
+   432→    severity: "high",
+   433→    symptoms: [
+   434→      "Blue Screen of Death (BSOD) dengan error DRIVER_*",
+   435→      "Perangkat tidak terdeteksi di Device Manager (ikon kuning)",
+   436→      "Hardware tertentu tidak berfungsi (sound, wifi, dll)",
+   437→      "Komputer crash setelah update atau install software"
+   438→    ],
+   439→    indicators: [
+   440→      "bsodCode contains DRIVER",
+   441→      "deviceManagerErrors > 0",
+   442→      "deviceNotWorking"
+   443→    ],
+   444→    description: "Driver adalah perangkat lunak penghubung antara hardware dan Windows. Driver yang corrupt, outdated, atau tidak kompatibel adalah penyebab #1 dari BSOD pada Windows 10/11. Masalah ini sering muncul setelah update Windows atau install software baru.",
+   445→    solutions: [
+   446→      {
+   447→        title: "Update Driver melalui Device Manager",
+   448→        steps: [
+   449→          "Klik kanan Start Menu > Device Manager",
+   450→          "Cari perangkat dengan ikon kuning (tanda seru)",
+   451→          "Klik kanan perangkat > Update driver",
+   452→          "Pilih 'Search automatically for drivers'",
+   453→          "Jika Windows tidak menemukan, kunjungi website produsen hardware",
+   454→          "Download dan install driver terbaru dari website resmi"
+   455→        ],
+   456→        difficulty: "mudah",
+   457→        requiresReboot: true,
+   458→        estimatedTime: "15-30 menit",
+   459→        successRate: 70
+   460→      },
+   461→      {
+   462→        title: "Uninstall & Clean Install Driver",
+   463→        steps: [
+   464→          "Buka Device Manager > cari perangkat bermasalah",
+   465→          "Klik kanan > Uninstall device",
+   466→          "Centang 'Attempt to remove the driver for this device'",
+   467→          "Restart komputer",
+   468→          "Windows akan otomatis menginstall driver default",
+   469→          "Jika masih bermasalah, install driver terbaru dari website produsen"
+   470→        ],
+   471→        difficulty: "mudah",
+   472→        requiresReboot: true,
+   473→        estimatedTime: "15-20 menit",
+   474→        successRate: 80
+   475→      },
+   476→      {
+   477→        title: "Gunakan DDU (Display Driver Uninstaller) untuk GPU",
+   478→        steps: [
+   479→          "Download DDU dari website resmi (wagnardsoft.com)",
+   480→          "Boot ke Safe Mode (Windows+I > Recovery > Restart now > Advanced > Safe Mode)",
+   481→          "Jalankan DDU dan pilih 'Clean and restart'",
+   482→          "Setelah restart, install driver GPU terbaru dari NVIDIA/AMD/Intel",
+   483→          "DDU menghapus semua sisa driver lama yang bisa menyebabkan konflik"
+   484→        ],
+   485→        difficulty: "sedang",
+   486→        requiresReboot: true,
+   487→        estimatedTime: "30-45 menit",
+   488→        successRate: 90
+   489→      }
+   490→    ]
+   491→  },
+   492→
+   493→  // ==================== WINDOWS SYSTEM ====================
+   494→  {
+   495→    id: "corrupted-system-files",
+   496→    category: "Windows System",
+   497→    title: "File Sistem Windows Rusak (Corrupted)",
+   498→    severity: "high",
+   499→    symptoms: [
+   500→      "Windows Update selalu gagal",
+   501→      "Beberapa fitur Windows tidak berfungsi (Start Menu, Settings, dll)",
+   502→      "Komputer sering crash atau freeze",
+   503→      "Aplikasi Windows Store tidak bisa dibuka"
+   504→    ],
+   505→    indicators: [
+   506→      "sfcResults contains violations",
+   507→      "dismHealth != healthy",
+   508→      "windowsUpdateFailing",
+   509→      "windowsFeaturesBroken"
+   510→    ],
+   511→    description: "File sistem Windows yang rusak bisa disebabkan oleh crash, power failure saat update, malware, atau disk yang bermasalah. Gejalanya sangat bervariasi dan seringkali sulit diprediksi karena file yang rusak bisa berdampak ke fitur yang berbeda-beda.",
+   512→    solutions: [
+   513→      {
+   514→        title: "Jalankan System File Checker (SFC)",
+   515→        steps: [
+   516→          "Buka Command Prompt sebagai Administrator (Start > ketik 'cmd' > Ctrl+Shift+Enter)",
+   517→          "Ketik: sfc /scannow",
+   518→          "Tunggu proses scan selesai (15-30 menit, jangan tutup window)",
+   519→          "Jika ditemukan corrupted files, SFC akan mencoba memperbaikinya",
+   520→          "Setelah selesai, restart komputer",
+   521→          "Jika masih bermasalah, lanjutkan ke langkah DISM di bawah"
+   522→        ],
+   523→        difficulty: "mudah",
+   524→        requiresReboot: true,
+   525→        estimatedTime: "30-45 menit",
+   526→        successRate: 70
+   527→      },
+   528→      {
+   529→        title: "Jalankan DISM Repair",
+   530→        steps: [
+   531→          "Buka Command Prompt sebagai Administrator",
+   532→          "Jalankan perintah pertama: DISM /Online /Cleanup-Image /CheckHealth",
+   533→          "Jika ada masalah, jalankan: DISM /Online /Cleanup-Image /ScanHealth",
+   534→          "Terakhir, jalankan repair: DISM /Online /Cleanup-Image /RestoreHealth",
+   535→          "Tunggu hingga selesai (bisa 30-60 menit, butuh koneksi internet)",
+   536→          "Restart komputer",
+   537→          "Setelah restart, jalankan SFC lagi: sfc /scannow"
+   538→        ],
+   539→        difficulty: "mudah",
+   540→        requiresReboot: true,
+   541→        estimatedTime: "60-120 menit",
+   542→        successRate: 85
+   543→      },
+   544→      {
+   545→        title: "Repair Install Windows (In-Place Upgrade)",
+   546→        steps: [
+   547→          "Download Windows 10/11 ISO dari website Microsoft",
+   548→          "Jalankan Media Creation Tool atau mount ISO",
+   549→          "Jalankan setup.exe dari ISO (saat Windows masih berjalan)",
+   550→          "Pilih 'Upgrade this PC now' (BUKAN Custom install)",
+   551→          "Ikuti wizard dan pilih 'Keep personal files and apps'",
+   552→          "Proses ini memperbaiki semua file Windows tanpa menghapus data"
+   553→        ],
+   554→        difficulty: "sedang",
+   555→        requiresReboot: true,
+   556→        estimatedTime: "60-120 menit",
+   557→        successRate: 90
+   558→      }
+   559→    ]
+   560→  },
+   561→  {
+   562→    id: "bsod-unexpected",
+   563→    category: "Windows System",
+   564→    title: "Blue Screen of Death (BSOD) - Various Errors",
+   565→    severity: "critical",
+   566→    symptoms: [
+   567→      "Layar biru dengan error code muncul tiba-tiba",
+   568→      "Komputer restart otomatis setelah BSOD",
+   569→      "BSOD terjadi secara random, tidak bisa diprediksi",
+   570→      "Dump file dibuat di C:\\Windows\\Minidump"
+   571→    ],
+   572→    indicators: [
+   573→      "bsodDetected",
+   574→      "minidumpFiles > 0",
+   575→      "unexpectedShutdown"
+   576→    ],
+   577→    description: "BSOD adalah mekanisme proteksi Windows ketika terjadi error fatal yang tidak bisa dipulihkan. Error code pada BSOD memberikan petunjuk tentang penyebabnya. Dump file yang dibuat bisa dianalisis untuk menemukan driver atau komponen yang menyebabkan crash.",
+   578→    solutions: [
+   579→      {
+   580→        title: "Analisis Minidump File",
+   581→        steps: [
+   582→          "Download BlueScreenView (nirsoft.net, gratis)",
+   583→          "Buka aplikasi dan file minidump akan otomatis dimuat",
+   584→          "Periksa kolom 'Caused By Driver' untuk menemukan driver penyebab",
+   585→          "Periksa juga 'Bug Check Code' untuk tipe error",
+   586→          "Screenshot hasil analisis untuk referensi",
+   587→          "Berdasarkan driver penyebab, update atau uninstall driver tersebut"
+   588→        ],
+   589→        difficulty: "sedang",
+   590→        requiresReboot: false,
+   591→        estimatedTime: "15-20 menit",
+   592→        successRate: 75
+   593→      },
+   594→      {
+   595→        title: "Periksa Memory (RAM)",
+   596→        steps: [
+   597→          "Banyak BSOD disebabkan oleh RAM yang rusak",
+   598→          "Jalankan Windows Memory Diagnostic (lihat solusi RAM defective)",
+   599→          "Atau gunakan memtest86+ (lebih akurat, boot dari USB)",
+   600→          "Jika RAM ditemukan bermasalah, ganti modul yang rusak",
+   601→          "Setelah perbaikan, monitor selama beberapa hari"
+   602→        ],
+   603→        difficulty: "sedang",
+   604→        requiresReboot: true,
+   605→        estimatedTime: "30-60 menit",
+   606→        successRate: 80
+   607→      },
+   608→      {
+   609→        title: "Uninstall Update Windows Terbaru (Jika BSOD mulai muncul setelah update)",
+   610→        steps: [
+   611→          "Buka Settings > Update & Security > View update history",
+   612→          "Klik 'Uninstall updates' di atas",
+   613→          "Di 'Microsoft Windows Updates', uninstall update terbaru",
+   614→          "Atau gunakan System Restore ke titik sebelum update",
+   615→          "Restart komputer",
+   616→          "Setelah stabil, tunggu update yang sudah diperbaiki oleh Microsoft"
+   617→        ],
+   618→        difficulty: "mudah",
+   619→        requiresReboot: true,
+   620→        estimatedTime: "20-30 menit",
+   621→        successRate: 60
+   622→      }
+   623→    ]
+   624→  },
+   625→
+   626→  // ==================== NETWORK ====================
+   627→  {
+   628→    id: "network-dns-issue",
+   629→    category: "Jaringan & Internet",
+   630→    title: "Masalah DNS (Internet Tersambung Tapi Tidak Bisa Browsing)",
+   631→    severity: "medium",
+   632→    symptoms: [
+   633→      "Wifi/LAN terhubung tapi browser tidak bisa membuka website",
+   634→      "Ping ke IP berhasil tapi ping ke domain gagal",
+   635→      "Error 'DNS_PROBE_FINISHED_NXDOMAIN' di browser",
+   636→      "Beberapa website bisa dibuka, yang lain tidak"
+   637→    ],
+   638→    indicators: [
+   639→      "pingIP success but pingDomain fail",
+   640→      "dnsResolutionFail",
+   641→      "nslookupTimeout"
+   642→    ],
+   643→    description: "Masalah DNS adalah salah satu masalah jaringan paling umum. DNS adalah 'phonebook' internet yang menerjemahkan nama domain (google.com) menjadi IP address. Jika DNS bermasalah, komputer tidak bisa 'mencari' alamat website meskipun koneksi internet fisiknya baik.",
+   644→    solutions: [
+   645→      {
+   646→        title: "Ganti DNS Server ke Google DNS",
+   647→        steps: [
+   648→          "Buka Settings > Network & Internet > Change adapter options",
+   649→          "Klik kanan koneksi aktif > Properties",
+   650→          "Pilih 'Internet Protocol Version 4 (TCP/IPv4)' > Properties",
+   651→          "Pilih 'Use the following DNS server addresses'",
+   652→          "Preferred DNS: 8.8.8.8",
+   653→          "Alternate DNS: 8.8.4.4",
+   654→          "Klik OK > OK",
+   655→          "Buka CMD dan jalankan: ipconfig /flushdns"
+   656→        ],
+   657→        difficulty: "mudah",
+   658→        requiresReboot: false,
+   659→        estimatedTime: "5-10 menit",
+   660→        successRate: 90
+   661→      },
+   662→      {
+   663→        title: "Reset Winsock & Network Stack",
+   664→        steps: [
+   665→          "Buka Command Prompt sebagai Administrator",
+   666→          "Jalankan: netsh winsock reset",
+   667→          "Jalankan: netsh int ip reset",
+   668→          "Jalankan: ipconfig /flushdns",
+   669→          "Jalankan: ipconfig /release",
+   670→          "Jalankan: ipconfig /renew",
+   671→          "Restart komputer"
+   672→        ],
+   673→        difficulty: "mudah",
+   674→        requiresReboot: true,
+   675→        estimatedTime: "10 menit",
+   676→        successRate: 70
+   677→      }
+   678→    ]
+   679→  },
+   680→  {
+   681→    id: "network-high-latency",
+   682→    category: "Jaringan & Internet",
+   683→    title: "Koneksi Internet Lambat / Latency Tinggi",
+   684→    severity: "medium",
+   685→    symptoms: [
+   686→      "Web loading sangat lambat meskipun kecepatan paket tinggi",
+   687→      "Video streaming buffer terus-menerus",
+   688→      "Game online lag (ping tinggi)",
+   689→      "Video call putus-putus"
+   690→    ],
+   691→    indicators: [
+   692→      "ping > 100ms",
+   693→      "packetLoss > 2%",
+   694→      "jitter > 50ms"
+   695→    ],
+   696→    description: "Latency tinggi bisa disebabkan oleh banyak faktor: jarak ke server, kualitas koneksi ISP, router yang lemah, interference wifi, atau bahkan malware yang menggunakan bandwidth. Analisis perlu dilakukan dari komputer user hingga jaringan ISP.",
+   697→    solutions: [
+   698→      {
+   699→        title: "Diagnosis & Optimasi Koneksi",
+   700→        steps: [
+   701→          "Jalankan: tracert google.com untuk melihat rute koneksi",
+   702→          "Jalankan: ping -n 50 8.8.8.8 untuk test latency konsisten",
+   703→          "Jalankan: pathping 8.8.8.8 untuk deteksi packet loss per hop",
+   704→          "Jika loss tinggi di hop pertama = masalah router/WiFi",
+   705→          "Jika loss tinggi di hop ISP = hubungi ISP",
+   706→          "Coba ganti ke koneksi LAN (kabel) jika menggunakan WiFi"
+   707→        ],
+   708→        difficulty: "mudah",
+   709→        requiresReboot: false,
+   710→        estimatedTime: "15 menit",
+   711→        successRate: 60
+   712→      },
+   713→      {
+   714→        title: "Optimasi WiFi & Router",
+   715→        steps: [
+   716→          "Jika menggunakan WiFi: dekatkan ke router atau gunakan extender",
+   717→          "Ganti channel WiFi (hindari channel yang ramai, gunakan WiFi Analyzer app)",
+   718→          "Gunakan band 5GHz jika tersedia (lebih cepat, lebih pendek jangkauan)",
+   719→          "Restart router (cabut power 30 detik, colok kembali)",
+   720→          "Update firmware router ke versi terbaru",
+   721→          "Nonaktifkan QoS jika tidak diperlukan (bisa membatasi kecepatan)"
+   722→        ],
+   723→        difficulty: "mudah",
+   724→        requiresReboot: false,
+   725→        estimatedTime: "20 menit",
+   726→        successRate: 55
+   727→      }
+   728→    ]
+   729→  },
+   730→
+   731→  // ==================== GPU ====================
+   732→  {
+   733→    id: "gpu-driver-crash",
+   734→    category: "GPU & Display",
+   735→    title: "GPU Driver Crash (Screen Flicker / Black Screen)",
+   736→    severity: "high",
+   737→    symptoms: [
+   738→      "Layar berkedip/flicker secara acak",
+   739→      "Black screen sesaat lalu kembali normal",
+   740→      "Error 'Display driver stopped responding and has recovered'",
+   741→      "Performa grafis sangat buruk atau turun drastis"
+   742→    ],
+   743→    indicators: [
+   744→      "eventLog contains nvlddmkm",
+   745→      "eventLog contains amdkmdap",
+   746→      "eventLog contains Display driver stopped",
+   747→      "gpuRecoveries > 0"
+   748→    ],
+   749→    description: "GPU driver crash bisa disebabkan oleh driver yang outdated, overheating GPU, power supply yang tidak mencukupi, atau GPU yang sudah rusak. Error 'Display driver stopped responding' adalah TDR (Timeout Detection and Recovery) - Windows mendeteksi GPU tidak merespons dan mencoba merestart driver.",
+   750→    solutions: [
+   751→      {
+   752→        title: "Update GPU Driver ke Versi Terbaru",
+   753→        steps: [
+   754→          "Kunjungi website resmi: NVIDIA (nvidia.com/drivers), AMD (amd.com/support), atau Intel",
+   755→          "Gunakan tool auto-detect di website untuk menemukan driver yang tepat",
+   756→          "Download dan install driver terbaru",
+   757→          "Pilih 'Custom install' > centang 'Perform clean installation'",
+   758→          "Setelah instalasi selesai, restart komputer",
+   759→          "Monitor selama beberapa hari apakah masalah terulang"
+   760→        ],
+   761→        difficulty: "mudah",
+   762→        requiresReboot: true,
+   763→        estimatedTime: "20-30 menit",
+   764→        successRate: 65
+   765→      },
+   766→      {
+   767→        title: "Periksa Suhu & Power Supply GPU",
+   768→        steps: [
+   769→          "Download GPU-Z (techpowerup.com/gpuz, gratis)",
+   770→          "Monitor suhu GPU saat gaming atau rendering",
+   771→          "Normal: idle 30-50°C, load 60-85°C. Warning: > 90°C",
+   772→          "Jika suhu terlalu tinggi: bersihkan debu dari GPU, cek fan",
+   773→          "Periksa apakah power supply mencukupi (periksa rekomendasi watt GPU)",
+   774→          "Jika PSU kurang daya, upgrade ke PSU dengan watt lebih tinggi"
+   775→        ],
+   776→        difficulty: "sedang",
+   777→        requiresReboot: false,
+   778→        estimatedTime: "20-30 menit",
+   779→        successRate: 70
+   780→      }
+   781→    ]
+   782→  },
+   783→
+   784→  // ==================== BOOT ====================
+   785→  {
+   786→    id: "slow-boot",
+   787→    category: "Performa & Startup",
+   788→    title: "Boot Time Sangat Lambat",
+   789→    severity: "medium",
+   790→    symptoms: [
+   791→      "Komputer butuh lebih dari 2-3 menit untuk boot",
+   792→      "Setelah tampil desktop, masih harus menunggu lama agar responsif",
+   793→      "Hard disk bekerja keras saat startup",
+   794→      "Banyak program otomatis berjalan saat startup"
+   795→    ],
+   796→    indicators: [
+   797→      "bootTime > 120 seconds",
+   798→      "highStartupPrograms",
+   799→      "slowPostBoot"
+   800→    ],
+   801→    description: "Boot yang lambat biasanya disebabkan oleh kombinasi: terlalu banyak program startup, service Windows yang tidak perlu, HDD yang lambat, atau malware. Windows 10/11 memiliki fitur Fast Startup yang membantu, tetapi jika masalah persisten, perlu investigasi lebih lanjut.",
+   802→    solutions: [
+   803→      {
+   804→        title: "Kurangi Program Startup",
+   805→        steps: [
+   806→          "Buka Task Manager > tab 'Startup' (Windows 10) atau 'Startup apps' (Windows 11)",
+   807→          "Klik kanan program yang tidak perlu berjalan saat startup > Disable",
+   808→          "Nonaktifkan: updater yang tidak penting, cloud apps, chat apps, dll",
+   809→          "Biarkan: antivirus, driver GPU (jika ada)",
+   810→          "Restart komputer dan ukur perubahan boot time",
+   811→          "Atau gunakan: Settings > Apps > Startup untuk versi Windows 11"
+   812→        ],
+   813→        difficulty: "mudah",
+   814→        requiresReboot: true,
+   815→        estimatedTime: "10-15 menit",
+   816→        successRate: 50
+   817→      },
+   818→      {
+   819→        title: "Optimasi Windows Services di Startup",
+   820→        steps: [
+   821→          "Buka Start > ketik 'services.msc' > Enter",
+   822→          "Nonaktifkan services yang tidak diperlukan:",
+   823→          "  - Connected User Experiences and Telemetry (telemetry)",
+   824→          "  - Diagnostic Policy Service (jika tidak diperlukan)",
+   825→          "  - Downloaded Maps Manager",
+   826→          "  - Windows Search (jika tidak sering search file)",
+   827→          "Untuk setiap service: klik kanan > Properties > Startup type: Disabled",
+   828→          "JANGAN nonaktifkan: Windows Update, Security Center, DNS Client"
+   829→        ],
+   830→        difficulty: "sedang",
+   831→        requiresReboot: true,
+   832→        estimatedTime: "20 menit",
+   833→        successRate: 40
+   834→      },
+   835→      {
+   836→        title: "Aktifkan Fast Startup & Defragment",
+   837→        steps: [
+   838→          "Buka Control Panel > Power Options > Choose what power buttons do",
+   839→          "Klik 'Change settings that are currently unavailable'",
+   840→          "Centang 'Turn on fast startup (recommended)' > Save",
+   841→          "Jika menggunakan HDD: jalankan Disk Defragmenter secara berkala",
+   842→          "Jika menggunakan SSD: jalankan TRIM: CMD > 'optimiz' selesai",
+   843→          "Restart dan periksa perubahan"
+   844→        ],
+   845→        difficulty: "mudah",
+   846→        requiresReboot: true,
+   847→        estimatedTime: "10 menit",
+   848→        successRate: 35
+   849→      }
+   850→    ]
+   851→  },
+   852→
+   853→  // ==================== MALWARE ====================
+   854→  {
+   855→    id: "malware-infection",
+   856→    category: "Keamanan",
+   857→    title: "Infeksi Malware / Virus",
+   858→    severity: "critical",
+   859→    symptoms: [
+   860→      "Komputer sangat lambat tanpa alasan jelas",
+   861→      "Muncul pop-up iklan atau program yang tidak dikenal",
+   862→      "Program antivirus ter-nonaktif atau tidak bisa dibuka",
+   863→      "Penggunaan data internet tinggi tanpa aktivitas user",
+   864→      "File atau folder menghilang atau berubah"
+   865→    ],
+   866→    indicators: [
+   867→      "antivirusDisabled",
+   868→      "unknownProcesses",
+   869→      "highNetworkUsage",
+   870→      "suspiciousRegistryChanges",
+   871→      "browserHijacked"
+   872→    ],
+   873→    description: "Malware bisa menyebabkan hampir semua gejala masalah komputer. Dari sekedar membuat lambat hingga mencuri data pribadi. Deteksi malware membutuhkan tools khusus karena malware modern dirancang untuk menghindari deteksi dan menyembunyikan diri.",
+   874→    solutions: [
+   875→      {
+   876→        title: "Scan Lengkap dengan Windows Defender Offline",
+   877→        steps: [
+   878→          "Buka Windows Security > Virus & threat protection",
+   879→          "Pilih 'Scan options' > 'Microsoft Defender Offline scan'",
+   880→          "Klik 'Scan now' (komputer akan restart ke mode offline)",
+   881→          "Scan ini lebih ampuh karena berjalan di luar Windows",
+   882→          "Tunggu scan selesai (bisa 15-60 menit)",
+   883→          "Setelah selesai, lakukan full scan online juga"
+   884→        ],
+   885→        difficulty: "mudah",
+   886→        requiresReboot: true,
+   887→        estimatedTime: "60-90 menit",
+   888→        successRate: 70
+   889→      },
+   890→      {
+   891→        title: "Scan dengan Malwarebytes Anti-Malware",
+   892→        steps: [
+   893→          "Download Malwarebytes Free dari website resmi (malwarebytes.com)",
+   894→          "Install dan update database terbaru",
+   895→          "Pilih 'Full scan' (lebih menyeluruh dari quick scan)",
+   896→          "Setelah scan selesai, karantina semua threat yang ditemukan",
+   897→          "Restart komputer",
+   898→          "Lakukan scan kedua untuk memastikan malware sudah bersih"
+   899→        ],
+   900→        difficulty: "mudah",
+   901→        requiresReboot: true,
+   902→        estimatedTime: "60-120 menit",
+   903→        successRate: 85
+   904→      },
+   905→      {
+   906→        title: "Scan dengan AdwCleaner (Browser Hijacker)",
+   907→        steps: [
+   908→          "Download AdwCleaner dari website Malwarebytes",
+   909→          "Jalankan scan (tidak perlu install)",
+   910→          "AdwCleaner mendeteksi adware, toolbar, dan browser hijacker",
+   911→          "Klik 'Clean' untuk menghapus semua yang ditemukan",
+   912→          "Restart komputer (AdwCleaner akan membersihkan saat startup)",
+   913→          "Periksa browser: hapus extension yang tidak dikenal"
+   914→        ],
+   915→        difficulty: "mudah",
+   916→        requiresReboot: true,
+   917→        estimatedTime: "15-20 menit",
+   918→        successRate: 80
+   919→      }
+   920→    ]
+   921→  },
+   922→
+   923→  // ==================== POWER SUPPLY ====================
+   924→  {
+   925→    id: "psu-unstable",
+   926→    category: "Power Supply",
+   927→    title: "Power Supply Tidak Stabil (Voltase Naik Turun)",
+   928→    severity: "critical",
+   929→    symptoms: [
+   930→      "Komputer restart sendiri saat bermain game atau rendering",
+   931→      "BSOD saat beban berat tetapi normal saat idle",
+   932→      "Kipas PSU berbunyi tidak normal (bunyi berderit)",
+   933→      "USB device sering disconnect-sendiri",
+   934→      "Komputer tidak mau menyala sama sekali"
+   935→    ],
+   936→    indicators: [
+   937→      "randomRestart under load",
+   938→      "bsod under load only",
+   939→      "usbDisconnect",
+   940→      "psuWhine",
+   941→      "voltageFluctuation"
+   942→    ],
+   943→    description: "Power supply yang tidak stabil adalah penyebab paling berbahaya karena bisa merusak semua komponen lain (motherboard, GPU, storage). Voltase yang tidak stabil menyebabkan signal noise yang memicu error random di semua komponen. Sayangnya, PSU bermasalah sulit dideteksi tanpa alat pengukuran khusus.",
+   944→    solutions: [
+   945→      {
+   946→        title: "Diagnosis Sementara (Tanpa Alat)",
+   947→        steps: [
+   948→          "Periksa apakah masalah terjadi hanya saat beban berat (gaming, rendering)",
+   949→          "Coba cabut peripheral yang tidak perlu (USB eksternal, speaker, dll)",
+   950→          "Jika komputer stabil tanpa peripheral tambahan, PSU mungkin sudah lemah",
+   951→          "Periksa kabel power: pastikan semua tercolok dengan baik",
+   952→          "Jika PSU berumur > 5 tahun, kemungkinan besar sudah perlu diganti",
+   953→          "Hindari menggunakan colokan/strip yang berbagi dengan perangkat besar (AC, kulkas)"
+   954→        ],
+   955→        difficulty: "mudah",
+   956→        requiresReboot: false,
+   957→        estimatedTime: "15-30 menit + observasi",
+   958→        successRate: 40
+   959→      },
+   960→      {
+   961→        title: "Ganti Power Supply",
+   962→        steps: [
+   963→          "Catat kebutuhan daya: jumlah total watt dari semua komponen",
+   964→          "Pilih PSU dengan rating 80 PLUS (Bronze/Silver/Gold/Platinum)",
+   965→          "Beli PSU dengan kapasitas 20-30% lebih besar dari kebutuhan aktual",
+   966→          "Ketika mengganti: catat koneksi semua kabel untuk referensi",
+   967→          "Lepas koneksi PSU lama, pasang PSU baru satu per satu",
+   968→          "Pastikan semua kabel (24-pin ATX, 8-pin CPU, 6/8-pin GPU, SATA, Molex) terhubung"
+   969→        ],
+   970→        difficulty: "lanjutan",
+   971→        requiresReboot: false,
+   972→        estimatedTime: "30-60 menit",
+   973→        successRate: 95
+   974→      }
+   975→    ]
+   976→  }
+   977→];
+   978→
+   979→// ============================================================
+   980→// ANALYSIS ENGINE - Menganalisis data diagnostik
+   981→// ============================================================
+   982→
+   983→export interface DiagnosticData {
+   984→  // System info
+   985→  computerName?: string;
+   986→  osVersion?: string;
+   987→  osBuild?: string;
+   988→  uptime?: string;
+   989→  
+   990→  // Hardware
+   991→  cpuModel?: string;
+   992→  cpuCores?: number;
+   993→  cpuUsage?: number;
+   994→  cpuTemperature?: number;
+   995→  totalRAMMB?: number;
+   996→  availableRAMMB?: number;
+   997→  totalStorageGB?: number;
+   998→  freeStorageGB?: number;
+   999→  gpuModel?: string;
+  1000→  gpuDriver?: string;
+  1001→  gpuTemperature?: number;
+  1002→  
+  1003→  // Disk health
+  1004→  diskType?: string;
+  1005→  diskHealth?: string;
+  1006→  smartWarnings?: string[];
+  1007→  diskUsage?: number;
+  1008→  
+  1009→  // Network
+  1010→  networkLatency?: number;
+  1011→  packetLoss?: number;
+  1012→  dnsStatus?: string;
+  1013→  
+  1014→  // Event logs
+  1015→  bsodHistory?: Array<{code: string; date: string}>;
+  1016→  criticalEvents?: number;
+  1017→  recentErrors?: Array<{source: string; message: string; date: string}>;
+  1018→  
+  1019→  // Services
+  1020→  importantServices?: Array<{name: string; status: string}>;
+  1021→  
+  1022→  // Startup
+  1023→  startupPrograms?: Array<{name: string; enabled: boolean}>;
+  1024→  
+  1025→  // User-reported symptoms
+  1026→  userSymptoms?: string[];
+  1027→  
+  1028→  // Additional
+  1029→  antivirusEnabled?: boolean;
+  1030→  windowsUpdateStatus?: string;
+  1031→  sfcResult?: string;
+  1032→  dismHealth?: string;
+  1033→}
+  1034→
+  1035→export interface AnalysisResult {
+  1036→  issues: Array<{
+  1037→    issue: DiagnosticIssue;
+  1038→    confidence: number; // 0-100, how confident the engine is
+  1039→    matchedSymptoms: string[];
+  1040→    matchedIndicators: string[];
+  1041→  }>;
+  1042→  overallSeverity: number; // 0-100
+  1043→  summary: string;
+  1044→  recommendations: string[];
+  1045→}
+  1046→
+  1047→// Keyword mapping for flexible symptom matching
+  1048→// Maps user-friendly symptom phrases to known issue IDs
+  1049→const SYMPTOM_KEYWORD_MAP: Record<string, string[]> = {
+  1050→  // CPU & Processor
+  1051→  "cpu-overheating": ["panas", "overheat", "suhu tinggi", "hangus", "mati sendiri", "therm", "fan keras", "kipas keras", "kipas berisik", "fan berisik", "restart sendiri tanpa peringatan"],
+  1052→  "cpu-high-usage": ["lambat semua", "cpu tinggi", "100%", "prosesor tinggi", "tanggap lambat", "task manager", "respond lambat", "mematikan proses", "task manager cpu"],
+  1053→  // RAM
+  1054→  "ram-insufficient": ["ram tidak cukup", "memory low", "memori rendah", "ram habis", "kurang ram", "ram rendah", "ram low", "memori tidak cukuk"],
+  1055→  "ram-defective": ["blue screen", "bsod", "memory_management", "page_fault", "restart acak", "restart random", "file corrupt", "file rusak", "random crash"],
+  1056→  // Disk
+  1057→  "disk-failing": ["bunyi aneh", "klik klik", "clicking", "file hilang", "disk bunyi", "hardisk bunyi", "delayed write", "write failed"],
+  1058→  "disk-100-usage": ["disk 100", "100% disk", "disk usage tinggi", "loading lama", "loading circle", "harddisk 100", "hdd 100", "ssd 100", "loading circle terus"],
+  1059→  // Driver
+  1060→  "driver-corrupted": ["device manager kuning", "ikon kuning", "tanda seru", "perangkat tidak terdeteksi", "device manager error", "driver error"],
+  1061→  // Windows
+  1062→  "corrupted-system-files": ["windows update gagal", "update gagal", "fitur tidak berfungsi", "start menu rusak", "setting rusak", "windows rusak", "store tidak bisa", "windows bermasalah"],
+  1063→  "bsod-unexpected": ["blue screen", "bsod", "layar biru", "blue screen of death", "minidump", "dump file"],
+  1064→  // Network
+  1065→  "network-dns-issue": ["internet tersambung tapi tidak bisa browsing", "dns", "tidak bisa browsing", "dns error", "nxdomain", "tidak bisa buka web", "wifi terhubung tapi tidak bisa", "lan terhubung tapi tidak bisa"],
+  1066→  "network-high-latency": ["internet lambat", "buffer", "lag", "latensi", "latency", "putus putus", "video call buruk", "ping tinggi", "jitter"],
+  1067→  // GPU
+  1068→  "gpu-driver-crash": ["layar berkedip", "flicker", "screen flicker", "black screen", "layar hitam", "display driver stopped", "gpu crash", "layar mati"],
+  1069→  // Performance
+  1070→  "slow-boot": ["boot lambat", "startup lambat", "nyala lambat", "loading lama", "boot time", "nyalain lama", "hidup lambat"],
+  1071→  // Security
+  1072→  "malware-infection": ["pop-up", "popup", "iklan", "ads", "virus", "malware", "antivirus mati", "antivirus nonaktif", "program tidak dikenal", "data tinggi", "browser redirect", "hijack"],
+  1073→  // Power
+  1074→  "psu-unstable": ["restart gaming", "bsod gaming", "psu", "power supply", "usb disconnect", "kipas psu bunyi", "psu bunyi", "voltase", "tidak mau nyala"],
+  1075→};
+  1076→
+  1077→function matchSymptomsByKeywords(userSymptoms: string[], issueId: string): string[] {
+  1078→  const keywords = SYMPTOM_KEYWORD_MAP[issueId];
+  1079→  if (!keywords) return [];
+  1080→  const matched: string[] = [];
+  1081→  for (const symptom of userSymptoms) {
+  1082→    const symptomLower = symptom.toLowerCase();
+  1083→    for (const keyword of keywords) {
+  1084→      if (symptomLower.includes(keyword) || keyword.includes(symptomLower)) {
+  1085→        if (!matched.includes(symptom)) {
+  1086→          matched.push(symptom);
+  1087→        }
+  1088→        break; // One match per user symptom is enough
+  1089→      }
+  1090→    }
+  1091→  }
+  1092→  return matched;
+  1093→}
+  1094→
+  1095→export function analyzeDiagnostic(data: DiagnosticData): AnalysisResult {
+  1096→  const issues: AnalysisResult['issues'] = [];
+  1097→  
+  1098→  // Analyze each known issue against the data
+  1099→  for (const knownIssue of KNOWLEDGE_BASE) {
+  1100→    const matchedSymptoms: string[] = [];
+  1101→    const matchedIndicators: string[] = [];
+  1102→    
+  1103→    // Check user-reported symptoms using flexible keyword matching
+  1104→    if (data.userSymptoms && data.userSymptoms.length > 0) {
+  1105→      const keywordMatches = matchSymptomsByKeywords(data.userSymptoms, knownIssue.id);
+  1106→      matchedSymptoms.push(...keywordMatches);
+  1107→      
+  1108→      // Also do a broader text overlap check
+  1109→      for (const symptom of data.userSymptoms) {
+  1110→        const symptomLower = symptom.toLowerCase();
+  1111→        // Extract key words from user symptom (2+ chars, skip common words)
+  1112→        const words = symptomLower.split(/\s+/).filter(w => w.length > 2 && !["yang", "dan", "atau", "untuk", "pada", "dari", "yang", "dengan", "tidak", "sudah", "akan", "bisa", "ada", "ini", "itu", "sangat", "sering", "terus"].includes(w));
+  1113→        for (const knownSymptom of knownIssue.symptoms) {
+  1114→          const knownLower = knownSymptom.toLowerCase();
+  1115→          const knownWords = knownLower.split(/\s+/).filter(w => w.length > 2);
+  1116→          // Check if any significant word overlaps
+  1117→          const overlap = words.filter(w => knownWords.some(kw => kw === w || (kw.length > 4 && w.includes(kw)) || (w.length > 4 && kw.includes(w))));
+  1118→          if (overlap.length >= 1) {
+  1119→            if (!matchedSymptoms.includes(symptom)) {
+  1120→              matchedSymptoms.push(symptom);
+  1121→            }
+  1122→          }
+  1123→        }
+  1124→      }
+  1125→    }
+  1126→    
+  1127→    // Check quantitative indicators
+  1128→    // CPU Temperature
+  1129→    if (data.cpuTemperature && data.cpuTemperature > 80) {
+  1130→      if (knownIssue.indicators.some(i => i.includes("cpuTemperature") || i.includes("thermalThrottling"))) {
+  1131→        matchedIndicators.push(`Suhu CPU tinggi: ${data.cpuTemperature}°C`);
+  1132→      }
+  1133→    }
+  1134→    
+  1135→    // CPU Usage
+  1136→    if (data.cpuUsage && data.cpuUsage > 85) {
+  1137→      if (knownIssue.indicators.some(i => i.includes("cpuUsage") || i.includes("systemResponsiveness"))) {
+  1138→        matchedIndicators.push(`CPU usage tinggi: ${data.cpuUsage}%`);
+  1139→      }
+  1140→    }
+  1141→    
+  1142→    // RAM
+  1143→    if (data.availableRAMMB && data.totalRAMMB) {
+  1144→      const ramPercent = ((data.totalRAMMB - data.availableRAMMB) / data.totalRAMMB) * 100;
+  1145→      if (ramPercent > 85 && knownIssue.indicators.some(i => i.includes("memoryUsage"))) {
+  1146→        matchedIndicators.push(`RAM usage sangat tinggi: ${ramPercent.toFixed(0)}%`);
+  1147→      }
+  1148→      if (data.availableRAMMB < 1500 && knownIssue.indicators.some(i => i.includes("availableRAM"))) {
+  1149→        matchedIndicators.push(`RAM tersedia rendah: ${data.availableRAMMB} MB`);
+  1150→      }
+  1151→    }
+  1152→    
+  1153→    // Disk usage
+  1154→    if (data.diskUsage && data.diskUsage > 90) {
+  1155→      if (knownIssue.indicators.some(i => i.includes("diskUsage"))) {
+  1156→        matchedIndicators.push(`Disk usage tinggi: ${data.diskUsage}%`);
+  1157→      }
+  1158→    }
+  1159→    
+  1160→    // Disk health
+  1161→    if (data.smartWarnings && data.smartWarnings.length > 0) {
+  1162→      if (knownIssue.id === 'disk-failing') {
+  1163→        matchedIndicators.push(`SMART warnings: ${data.smartWarnings.join(', ')}`);
+  1164→      }
+  1165→    }
+  1166→    if (data.diskHealth && data.diskHealth.toLowerCase() !== "ok" && data.diskHealth.toLowerCase() !== "healthy" && knownIssue.id === 'disk-failing') {
+  1167→      matchedIndicators.push(`Disk health tidak OK: ${data.diskHealth}`);
+  1168→    }
+  1169→    
+  1170→    // Network
+  1171→    if (data.networkLatency && data.networkLatency > 100) {
+  1172→      if (knownIssue.indicators.some(i => i.includes("ping"))) {
+  1173→        matchedIndicators.push(`Latensi tinggi: ${data.networkLatency}ms`);
+  1174→      }
+  1175→    }
+  1176→    
+  1177→    // Packet loss
+  1178→    if (data.packetLoss && data.packetLoss > 2) {
+  1179→      if (knownIssue.indicators.some(i => i.includes("packetLoss"))) {
+  1180→        matchedIndicators.push(`Packet loss: ${data.packetLoss}%`);
+  1181→      }
+  1182→    }
+  1183→    
+  1184→    // DNS
+  1185→    if (data.dnsStatus && (data.dnsStatus.toLowerCase().includes("fail") || data.dnsStatus.toLowerCase().includes("timeout"))) {
+  1186→      if (knownIssue.id === 'network-dns-issue') {
+  1187→        matchedIndicators.push(`DNS Status: ${data.dnsStatus}`);
+  1188→      }
+  1189→    }
+  1190→    
+  1191→    // BSOD
+  1192→    if (data.bsodHistory && data.bsodHistory.length > 0) {
+  1193→      for (const bsod of data.bsodHistory) {
+  1194→        const bsodCode = typeof bsod === 'string' ? bsod : bsod.code;
+  1195→        const bsodLower = bsodCode.toLowerCase();
+  1196→        // Check against specific BSOD codes
+  1197→        if (knownIssue.id === 'ram-defective' && (bsodLower.includes('memory_management') || bsodLower.includes('page_fault'))) {
+  1198→          matchedIndicators.push(`BSOD: ${bsodCode}`);
+  1199→        }
+  1200→        if (knownIssue.id === 'gpu-driver-crash' && (bsodLower.includes('nvlddmkm') || bsodLower.includes('video') || bsodLower.includes('display'))) {
+  1201→          matchedIndicators.push(`BSOD: ${bsodCode}`);
+  1202→        }
+  1203→        if (knownIssue.id === 'driver-corrupted' && bsodLower.includes('driver')) {
+  1204→          matchedIndicators.push(`BSOD: ${bsodCode}`);
+  1205→        }
+  1206→      }
+  1207→      // General BSOD detection for the BSOD issue
+  1208→      if (knownIssue.id === 'bsod-unexpected') {
+  1209→        matchedIndicators.push(`Riwayat BSOD: ${data.bsodHistory.length} kejadian`);
+  1210→      }
+  1211→    }
+  1212→    
+  1213→    // System files
+  1214→    if (data.sfcResult && data.sfcResult.toLowerCase().includes("violation") && knownIssue.indicators.some(i => i.includes("sfc"))) {
+  1215→      matchedIndicators.push("SFC menemukan file corrupt");
+  1216→    }
+  1217→    if (data.dismHealth && (data.dismHealth.toLowerCase().includes("error") || data.dismHealth.toLowerCase().includes("corrupt")) && knownIssue.indicators.some(i => i.includes("dism"))) {
+  1218→      matchedIndicators.push("DISM menemukan masalah");
+  1219→    }
+  1220→    
+  1221→    // Antivirus
+  1222→    if (data.antivirusEnabled === false && knownIssue.indicators.some(i => i.includes("antivirusDisabled"))) {
+  1223→      matchedIndicators.push("Antivirus dinonaktifkan");
+  1224→    }
+  1225→    
+  1226→    // Windows Update
+  1227→    if (data.windowsUpdateStatus && data.windowsUpdateStatus.toLowerCase().includes("fail") && knownIssue.id === 'corrupted-system-files') {
+  1228→      matchedIndicators.push("Windows Update gagal");
+  1229→    }
+  1230→    
+  1231→    // Critical events
+  1232→    if (data.criticalEvents && data.criticalEvents > 5 && knownIssue.id === 'corrupted-system-files') {
+  1233→      matchedIndicators.push(`Banyak event critical: ${data.criticalEvents}`);
+  1234→    }
+  1235→    
+  1236→    // If we have matches, calculate confidence
+  1237→    if (matchedSymptoms.length > 0 || matchedIndicators.length > 0) {
+  1238→      const symptomWeight = 0.6;
+  1239→      const indicatorWeight = 0.4;
+  1240→      const maxPossibleSymptoms = Math.max(knownIssue.symptoms.length, 1);
+  1241→      const maxPossibleIndicators = Math.max(knownIssue.indicators.length, 1);
+  1242→      
+  1243→      const symptomScore = Math.min(matchedSymptoms.length / maxPossibleSymptoms, 1);
+  1244→      const indicatorScore = Math.min(matchedIndicators.length / maxPossibleIndicators, 1);
+  1245→      
+  1246→      const confidence = Math.round(
+  1247→        (symptomScore * symptomWeight + indicatorScore * indicatorWeight) * 100
+  1248→      );
+  1249→      
+  1250→      // Lower threshold to 15 for keyword-matched results
+  1251→      if (confidence >= 15) {
+  1252→        issues.push({
+  1253→          issue: knownIssue,
+  1254→          confidence: Math.min(Math.max(confidence, 30), 95), // At least 30% for any match
+  1255→          matchedSymptoms: [...new Set(matchedSymptoms)],
+  1256→          matchedIndicators: [...new Set(matchedIndicators)],
+  1257→        });
+  1258→      }
+  1259→    }
+  1260→  }
+  1261→  
+  1262→  // Sort by confidence
+  1263→  issues.sort((a, b) => b.confidence - a.confidence);
+  1264→  
+  1265→  // Calculate overall severity
+  1266→  const severityMap: Record<string, number> = { critical: 100, high: 75, medium: 50, low: 25 };
+  1267→  let overallSeverity = 0;
+  1268→  if (issues.length > 0) {
+  1269→    overallSeverity = Math.round(
+  1270→      issues.reduce((sum, i) => {
+  1271→        const base = severityMap[i.issue.severity] || 50;
+  1272→        return sum + base * (i.confidence / 100);
+  1273→      }, 0) / issues.length
+  1274→    );
+  1275→  }
+  1276→  
+  1277→  // Generate summary
+  1278→  const summary = generateSummary(issues, overallSeverity);
+  1279→  
+  1280→  // Generate recommendations
+  1281→  const recommendations = generateRecommendations(issues);
+  1282→  
+  1283→  return { issues, overallSeverity, summary, recommendations };
+  1284→}
+  1285→
+  1286→function generateSummary(issues: AnalysisResult['issues'], severity: number): string {
+  1287→  if (issues.length === 0) {
+  1288→    return "Tidak ditemukan masalah signifikan berdasarkan data diagnostik yang diberikan. Komputer dalam kondisi baik.";
+  1289→  }
+  1290→  
+  1291→  const criticalCount = issues.filter(i => i.issue.severity === "critical").length;
+  1292→  const highCount = issues.filter(i => i.issue.severity === "high").length;
+  1293→  const mediumCount = issues.filter(i => i.issue.severity === "medium").length;
+  1294→  
+  1295→  let summary = `Ditemukan ${issues.length} masalah potensial. `;
+  1296→  
+  1297→  if (criticalCount > 0) {
+  1298→    summary += `${criticalCount} masalah KRITIS yang memerlukan penanganan segera. `;
+  1299→  }
+  1300→  if (highCount > 0) {
+  1301→    summary += `${highCount} masalah prioritas tinggi. `;
+  1302→  }
+  1303→  if (mediumCount > 0) {
+  1304→    summary += `${mediumCount} masalah prioritas sedang. `;
+  1305→  }
+  1306→  
+  1307→  summary += "Skor keseluruhan: " + (severity >= 80 ? "SANGAT KRITIS" : severity >= 60 ? "TINGGI" : severity >= 40 ? "SEDANG" : "RENDAH");
+  1308→  
+  1309→  return summary;
+  1310→}
+  1311→
+  1312→function generateRecommendations(issues: AnalysisResult['issues']): string[] {
+  1313→  const recommendations: string[] = [];
+  1314→  
+  1315→  if (issues.length === 0) {
+  1316→    recommendations.push("Lakukan pemeriksaan rutin secara berkala untuk menjaga kesehatan komputer.");
+  1317→    recommendations.push("Pastikan Windows Update selalu aktif dan terbaru.");
+  1318→    recommendations.push("Lakukan backup data secara rutin.");
+  1319→    return recommendations;
+  1320→  }
+  1321→  
+  1322→  // Prioritize by severity
+  1323→  const sorted = [...issues].sort((a, b) => {
+  1324→    const sevOrder = { critical: 0, high: 1, medium: 2, low: 3 };
+  1325→    return sevOrder[a.issue.severity] - sevOrder[b.issue.severity];
+  1326→  });
+  1327→  
+  1328→  for (const { issue } of sorted) {
+  1329→    if (issue.solutions.length > 0) {
+  1330→      recommendations.push(`${issue.title}: ${issue.solutions[0].title} (${issue.solutions[0].estimatedTime})`);
+  1331→    }
+  1332→  }
+  1333→  
+  1334→  // General recommendations
+  1335→  if (issues.some(i => i.issue.category === "Storage & Disk")) {
+  1336→    recommendations.push("SEGERA backup data penting jika ada indikasi masalah storage.");
+  1337→  }
+  1338→  if (issues.some(i => i.issue.category === "CPU & Processor" && i.issue.id === "cpu-overheating")) {
+  1339→    recommendations.push("Hindari penggunaan komputer berat sampai masalah overheating ditangani.");
+  1340→  }
+  1341→  
+  1342→  return recommendations;
+  1343→}
+  1344→
+  1345→export function getSeverityColor(severity: string): string {
+  1346→  switch (severity) {
+  1347→    case "critical": return "destructive";
+  1348→    case "high": return "warning";
+  1349→    case "medium": return "secondary";
+  1350→    case "low": return "default";
+  1351→    default: return "default";
+  1352→  }
+  1353→}
+  1354→
+  1355→export function getSeverityLabel(severity: string): string {
+  1356→  switch (severity) {
+  1357→    case "critical": return "Kritis";
+  1358→    case "high": return "Tinggi";
+  1359→    case "medium": return "Sedang";
+  1360→    case "low": return "Rendah";
+  1361→    default: return "Tidak diketahui";
+  1362→  }
+  1363→}
+  1364→

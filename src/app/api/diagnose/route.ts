@@ -56,7 +56,14 @@ export async function POST(request: NextRequest) {
       networkLatency: num(body.networkLatency),
       packetLoss: num(body.packetLoss),
       dnsStatus: str(body.dnsStatus),
-      bsodHistory: Array.isArray(body.bsodHistory) ? body.bsodHistory : undefined,
+      bsodHistory: Array.isArray(body.bsodHistory) ? body.bsodHistory
+        .filter((b: unknown) => b != null)
+        .map((b: Record<string, unknown>) => {
+          // Normalize each entry to a clean {code, date} object
+          const code = typeof b === 'string' ? b : String(b?.code ?? b?.errorCode ?? b?.BugCheckCode ?? b?.message ?? '');
+          const date = String(b?.date ?? '');
+          return { code, date };
+        }) : undefined,
       criticalEvents: num(body.criticalEvents),
       recentErrors: Array.isArray(body.recentErrors) ? body.recentErrors : undefined,
       importantServices: Array.isArray(body.importantServices) ? body.importantServices : undefined,

@@ -1,0 +1,1078 @@
+     1→     1→"use client";
+     2→     2→
+     3→     3→import { useState, useEffect } from "react";
+     4→     4→import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+     5→     5→import { Button } from "@/components/ui/button";
+     6→     6→import { Badge } from "@/components/ui/badge";
+     7→     7→import { Progress } from "@/components/ui/progress";
+     8→     8→import { Separator } from "@/components/ui/separator";
+     9→     9→import { ScrollArea } from "@/components/ui/scroll-area";
+    10→    10→import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+    11→    11→import {
+    12→    12→  Monitor,
+    13→    13→  Cpu,
+    14→    14→  HardDrive,
+    15→    15→  MemoryStick,
+    16→    16→  Thermometer,
+    17→    17→  Wifi,
+    18→    18→  AlertTriangle,
+    19→    19→  CheckCircle2,
+    20→    20→  XCircle,
+    21→    21→  ChevronRight,
+    22→    22→  ChevronDown,
+    23→    23→  Clock,
+    24→    24→  Activity,
+    25→    25→  Shield,
+    26→    26→  Upload,
+    27→    27→  FileText,
+    28→    28→  History,
+    29→    29→  Wrench,
+    30→    30→  Zap,
+    31→    31→  Search,
+    32→    32→  Loader2,
+    33→    33→} from "lucide-react";
+    34→    34→
+    35→    35→// ============================================================
+    36→    36→// Types
+    37→    37→// ============================================================
+    38→    38→
+    39→    39→interface AnalysisIssue {
+    40→    40→  id: string;
+    41→    41→  category: string;
+    42→    42→  title: string;
+    43→    43→  severity: string;
+    44→    44→  confidence: number;
+    45→    45→  matchedSymptoms: string[];
+    46→    46→  matchedIndicators: string[];
+    47→    47→  description: string;
+    48→    48→  solutions: {
+    49→    49→    title: string;
+    50→    50→    steps: string[];
+    51→    51→    difficulty: string;
+    52→    52→    requiresReboot: boolean;
+    53→    53→    estimatedTime: string;
+    54→    54→    successRate: number;
+    55→    55→  }[];
+    56→    56→}
+    57→    57→
+    58→    58→interface AnalysisResult {
+    59→    59→  issues: AnalysisIssue[];
+    60→    60→  overallSeverity: number;
+    61→    61→  summary: string;
+    62→    62→  recommendations: string[];
+    63→    63→}
+    64→    64→
+    65→    65→interface ComputerInfo {
+    66→    66→  computerName: string;
+    67→    67→  osVersion: string;
+    68→    68→  cpuModel: string;
+    69→    69→  totalRAMMB: number;
+    70→    70→  totalStorageGB: number;
+    71→    71→  gpuModel: string;
+    72→    72→}
+    73→    73→
+    74→    74→interface DiagnosticForm {
+    75→    75→  computerName: string;
+    76→    76→  osVersion: string;
+    77→    77→  cpuModel: string;
+    78→    78→  cpuCores: number;
+    79→    79→  cpuUsage: number;
+    80→    80→  cpuTemperature: number;
+    81→    81→  totalRAMMB: number;
+    82→    82→  availableRAMMB: number;
+    83→    83→  totalStorageGB: number;
+    84→    84→  freeStorageGB: number;
+    85→    85→  gpuModel: string;
+    86→    86→  gpuDriver: string;
+    87→    87→  gpuTemperature: number;
+    88→    88→  diskType: string;
+    89→    89→  diskUsage: number;
+    90→    90→  diskHealth: string;
+    91→    91→  smartWarnings: string[];
+    92→    92→  networkLatency: number;
+    93→    93→  packetLoss: number;
+    94→    94→  dnsStatus: string;
+    95→    95→  antivirusEnabled: boolean;
+    96→    96→  windowsUpdateStatus: string;
+    97→    97→  userSymptoms: string[];
+    98→    98→  bsodHistory: string;
+    99→    99→  sfcResult: string;
+   100→   100→  dismHealth: string;
+   101→   101→  criticalEvents: number;
+   102→   102→}
+   103→   103→
+   104→   104→interface HistoryReport {
+   105→   105→  id: string;
+   106→   106→  computerName: string;
+   107→   107→  osVersion: string;
+   108→   108→  cpuModel: string;
+   109→   109→  totalRAMMB: number;
+   110→   110→  severityScore: number;
+   111→   111→  status: string;
+   112→   112→  createdAt: string;
+   113→   113→}
+   114→   114→
+   115→   115→// ============================================================
+   116→   116→// Helper components
+   117→   117→// ============================================================
+   118→   118→
+   119→   119→function SeverityBadge({ severity }: { severity: string }) {
+   120→   120→  const config: Record<string, { variant: "destructive" | "default" | "secondary" | "outline"; label: string }> = {
+   121→   121→    critical: { variant: "destructive", label: "Kritis" },
+   122→   122→    high: { variant: "default", label: "Tinggi" },
+   123→   123→    medium: { variant: "secondary", label: "Sedang" },
+   124→   124→    low: { variant: "outline", label: "Rendah" },
+   125→   125→  };
+   126→   126→  const cfg = config[severity] || config.low;
+   127→   127→  return <Badge variant={cfg.variant}>{cfg.label}</Badge>;
+   128→   128→}
+   129→   129→
+   130→   130→function ConfidenceBar({ value }: { value: number }) {
+   131→   131→  const color =
+   132→   132→    value >= 75 ? "bg-red-500" : value >= 50 ? "bg-amber-500" : value >= 30 ? "bg-yellow-500" : "bg-green-500";
+   133→   133→  return (
+   134→   134→    <div className="flex items-center gap-2">
+   135→   135→      <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
+   136→   136→        <div className={`h-full rounded-full transition-all duration-500 ${color}`} style={{ width: `${value}%` }} />
+   137→   137→      </div>
+   138→   138→      <span className="text-xs text-muted-foreground w-8 text-right">{value}%</span>
+   139→   139→    </div>
+   140→   140→  );
+   141→   141→}
+   142→   142→
+   143→   143→function SeverityGauge({ score }: { score: number }) {
+   144→   144→  const color =
+   145→   145→    score >= 80 ? "text-red-500" : score >= 60 ? "text-orange-500" : score >= 40 ? "text-yellow-500" : "text-green-500";
+   146→   146→  const label =
+   147→   147→    score >= 80 ? "Sangat Kritis" : score >= 60 ? "Tinggi" : score >= 40 ? "Sedang" : "Sehat";
+   148→   148→  return (
+   149→   149→    <div className="flex flex-col items-center gap-2">
+   150→   150→      <div className={`text-5xl font-bold ${color}`}>{score}</div>
+   151→   151→      <Badge variant={score >= 60 ? "destructive" : "secondary"} className="text-xs">
+   152→   152→        {label}
+   153→   153→      </Badge>
+   154→   154→    </div>
+   155→   155→  );
+   156→   156→}
+   157→   157→
+   158→   158→// ============================================================
+   159→   159→// Main App Component
+   160→   160→// ============================================================
+   161→   161→
+   162→   162→export default function DiagnosticApp() {
+   163→   163→  const [activeView, setActiveView] = useState<"dashboard" | "diagnose" | "history">("dashboard");
+   164→   164→  const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(null);
+   165→   165→  const [computerInfo, setComputerInfo] = useState<ComputerInfo | null>(null);
+   166→   166→  const [reportId, setReportId] = useState<string | null>(null);
+   167→   167→  const [historyReports, setHistoryReports] = useState<HistoryReport[]>([]);
+   168→   168→  const [isAnalyzing, setIsAnalyzing] = useState(false);
+   169→   169→  const [expandedSolutions, setExpandedSolutions] = useState<Set<string>>(new Set());
+   170→   170→  const [jsonUploadData, setJsonUploadData] = useState<string>("");
+   171→   171→  const [showJsonUpload, setShowJsonUpload] = useState(false);
+   172→   172→
+   173→   173→  const [form, setForm] = useState<DiagnosticForm>({
+   174→   174→    computerName: "",
+   175→   175→    osVersion: "",
+   176→   176→    cpuModel: "",
+   177→   177→    cpuCores: 0,
+   178→   178→    cpuUsage: 0,
+   179→   179→    cpuTemperature: 0,
+   180→   180→    totalRAMMB: 0,
+   181→   181→    availableRAMMB: 0,
+   182→   182→    totalStorageGB: 0,
+   183→   183→    freeStorageGB: 0,
+   184→   184→    gpuModel: "",
+   185→   185→    gpuDriver: "",
+   186→   186→    gpuTemperature: 0,
+   187→   187→    diskType: "SSD",
+   188→   188→    diskUsage: 0,
+   189→   189→    diskHealth: "OK",
+   190→   190→    smartWarnings: [],
+   191→   191→    networkLatency: 0,
+   192→   192→    packetLoss: 0,
+   193→   193→    dnsStatus: "OK",
+   194→   194→    antivirusEnabled: true,
+   195→   195→    windowsUpdateStatus: "Up to date",
+   196→   196→    userSymptoms: [],
+   197→   197→    bsodHistory: "",
+   198→   198→    sfcResult: "No violations found",
+   199→   199→    dismHealth: "Healthy",
+   200→   200→    criticalEvents: 0,
+   201→   201→  });
+   202→   202→
+   203→   203→  const [symptomInput, setSymptomInput] = useState("");
+   204→   204→  const [smartWarningInput, setSmartWarningInput] = useState("");
+   205→   205→
+   206→   206→  // Load history on mount
+   207→   207→  useEffect(() => {
+   208→   208→    fetchHistory();
+   209→   209→  }, []);
+   210→   210→
+   211→   211→  const fetchHistory = async () => {
+   212→   212→    try {
+   213→   213→      const res = await fetch("/api/diagnose");
+   214→   214→      const data = await res.json();
+   215→   215→      if (data.success) {
+   216→   216→        setHistoryReports(data.reports);
+   217→   217→      }
+   218→   218→    } catch (err) {
+   219→   219→      console.error("Failed to fetch history:", err);
+   220→   220→    }
+   221→   221→  };
+   222→   222→
+   223→   223→  const addSymptom = () => {
+   224→   224→    if (symptomInput.trim() && !form.userSymptoms.includes(symptomInput.trim())) {
+   225→   225→      setForm({ ...form, userSymptoms: [...form.userSymptoms, symptomInput.trim()] });
+   226→   226→      setSymptomInput("");
+   227→   227→    }
+   228→   228→  };
+   229→   229→
+   230→   230→  const removeSymptom = (idx: number) => {
+   231→   231→    setForm({ ...form, userSymptoms: form.userSymptoms.filter((_, i) => i !== idx) });
+   232→   232→  };
+   233→   233→
+   234→   234→  const addSmartWarning = () => {
+   235→   235→    if (smartWarningInput.trim() && !form.smartWarnings.includes(smartWarningInput.trim())) {
+   236→   236→      setForm({ ...form, smartWarnings: [...form.smartWarnings, smartWarningInput.trim()] });
+   237→   237→      setSmartWarningInput("");
+   238→   238→    }
+   239→   239→  };
+   240→   240→
+   241→   241→  const removeSmartWarning = (idx: number) => {
+   242→   242→    setForm({ ...form, smartWarnings: form.smartWarnings.filter((_, i) => i !== idx) });
+   243→   243→  };
+   244→   244→
+   245→   245→  const toggleSolution = (id: string) => {
+   246→   246→    const next = new Set(expandedSolutions);
+   247→   247→    if (next.has(id)) next.delete(id);
+   248→   248→    else next.add(id);
+   249→   249→    setExpandedSolutions(next);
+   250→   250→  };
+   251→   251→
+   252→   252→  const handleAnalyze = async () => {
+   253→   253→    setIsAnalyzing(true);
+   254→   254→    setAnalysisResult(null);
+   255→   255→    setComputerInfo(null);
+   256→   256→
+   257→   257→    try {
+   258→   258→      const payload: Record<string, unknown> = {
+   259→   259→        computerName: form.computerName || "Unknown PC",
+   260→   260→        osVersion: form.osVersion || undefined,
+   261→   261→        cpuModel: form.cpuModel || undefined,
+   262→   262→        cpuCores: form.cpuCores || undefined,
+   263→   263→        cpuUsage: form.cpuUsage || undefined,
+   264→   264→        cpuTemperature: form.cpuTemperature || undefined,
+   265→   265→        totalRAMMB: form.totalRAMMB || undefined,
+   266→   266→        availableRAMMB: form.availableRAMMB || undefined,
+   267→   267→        totalStorageGB: form.totalStorageGB || undefined,
+   268→   268→        freeStorageGB: form.freeStorageGB || undefined,
+   269→   269→        gpuModel: form.gpuModel || undefined,
+   270→   270→        gpuDriver: form.gpuDriver || undefined,
+   271→   271→        gpuTemperature: form.gpuTemperature || undefined,
+   272→   272→        diskType: form.diskType || undefined,
+   273→   273→        diskHealth: form.diskHealth || undefined,
+   274→   274→        smartWarnings: form.smartWarnings.length > 0 ? form.smartWarnings : undefined,
+   275→   275→        diskUsage: form.diskUsage || undefined,
+   276→   276→        networkLatency: form.networkLatency || undefined,
+   277→   277→        packetLoss: form.packetLoss || undefined,
+   278→   278→        dnsStatus: form.dnsStatus || undefined,
+   279→   279→        antivirusEnabled: form.antivirusEnabled,
+   280→   280→        windowsUpdateStatus: form.windowsUpdateStatus || undefined,
+   281→   281→        userSymptoms: form.userSymptoms.length > 0 ? form.userSymptoms : undefined,
+   282→   282→        bsodHistory: (() => { if (!form.bsodHistory || !form.bsodHistory.trim() || form.bsodHistory.includes('[object')) return undefined; const codes = form.bsodHistory.split(',').map(s => s.trim()).filter(s => s.length > 0 && !s.includes('[object')); if (codes.length === 0) return undefined; return codes.map(code => ({ code, date: new Date().toISOString() })); })(),
+   283→   283→        sfcResult: form.sfcResult || undefined,
+   284→   284→        dismHealth: form.dismHealth || undefined,
+   285→   285→        criticalEvents: form.criticalEvents || undefined,
+   286→   286→      };
+   287→   287→
+   288→   288→      const res = await fetch("/api/diagnose", {
+   289→   289→        method: "POST",
+   290→   290→        headers: { "Content-Type": "application/json" },
+   291→   291→        body: JSON.stringify(payload),
+   292→   292→      });
+   293→   293→
+   294→   294→      if (!res.ok) {
+   295→   295→        const errorText = await res.text().catch(() => "Unknown error");
+   296→   296→        throw new Error(`Server error (${res.status}): ${errorText}`);
+   297→   297→      }
+   298→   298→
+   299→   299→      const data = await res.json();
+   300→   300→      if (data.success) {
+   301→   301→        setAnalysisResult(data.analysis);
+   302→   302→        setComputerInfo(data.computerInfo);
+   303→   303→        setReportId(data.reportId);
+   304→   304→        setActiveView("dashboard");
+   305→   305→        fetchHistory();
+   306→   306→      } else {
+   307→   307→        alert("Gagal menganalisis: " + data.error);
+   308→   308→      }
+   309→   309→    } catch (err: unknown) {
+   310→   310→      const errorMessage = err instanceof Error ? err.message : String(err);
+   311→   311→      console.error("Diagnostic analysis error:", err);
+   312→   312→      alert("Terjadi kesalahan: " + errorMessage + "\n\nPastikan:\n1. Koneksi internet stabil\n2. Coba refresh halaman lalu coba lagi\n3. Jika upload JSON, pastikan format JSON valid");
+   313→   313→    } finally {
+   314→   314→      setIsAnalyzing(false);
+   315→   315→    }
+   316→   316→  };
+   317→   317→
+   318→   318→  const parseBSOD = (text: string) => {
+   319→   319→    if (!text || !text.trim() || text.includes("[object")) return undefined;
+   320→   320→    const codes = text.split(",").map(s => s.trim()).filter(s => s.length > 0 && !s.includes("[object"));
+   321→   321→    if (codes.length === 0) return undefined;
+   322→   322→    return codes.map(code => ({ code, date: new Date().toISOString() }));
+   323→   323→  };
+   324→   324→
+   325→   325→  const handleJsonUpload = () => {
+   326→   326→    try {
+   327→   327→      const parsed = JSON.parse(jsonUploadData);
+   328→   328→      // Fill form from JSON
+   329→   329→      if (parsed.computerName) setForm(f => ({ ...f, computerName: parsed.computerName }));
+   330→   330→      if (parsed.osVersion) setForm(f => ({ ...f, osVersion: parsed.osVersion }));
+   331→   331→      if (parsed.cpuModel) setForm(f => ({ ...f, cpuModel: parsed.cpuModel }));
+   332→   332→      if (parsed.cpuCores) setForm(f => ({ ...f, cpuCores: parsed.cpuCores }));
+   333→   333→      if (parsed.cpuUsage) setForm(f => ({ ...f, cpuUsage: parsed.cpuUsage }));
+   334→   334→      if (parsed.cpuTemperature) setForm(f => ({ ...f, cpuTemperature: parsed.cpuTemperature }));
+   335→   335→      if (parsed.totalRAMMB) setForm(f => ({ ...f, totalRAMMB: parsed.totalRAMMB }));
+   336→   336→      if (parsed.availableRAMMB) setForm(f => ({ ...f, availableRAMMB: parsed.availableRAMMB }));
+   337→   337→      if (parsed.totalStorageGB) setForm(f => ({ ...f, totalStorageGB: parsed.totalStorageGB }));
+   338→   338→      if (parsed.freeStorageGB) setForm(f => ({ ...f, freeStorageGB: parsed.freeStorageGB }));
+   339→   339→      if (parsed.gpuModel) setForm(f => ({ ...f, gpuModel: parsed.gpuModel }));
+   340→   340→      if (parsed.gpuDriver) setForm(f => ({ ...f, gpuDriver: parsed.gpuDriver }));
+   341→   341→      if (parsed.gpuTemperature) setForm(f => ({ ...f, gpuTemperature: parsed.gpuTemperature }));
+   342→   342→      if (parsed.diskType) setForm(f => ({ ...f, diskType: parsed.diskType }));
+   343→   343→      if (parsed.diskUsage) setForm(f => ({ ...f, diskUsage: parsed.diskUsage }));
+   344→   344→      if (parsed.diskHealth) setForm(f => ({ ...f, diskHealth: parsed.diskHealth }));
+   345→   345→      if (parsed.smartWarnings) setForm(f => ({ ...f, smartWarnings: parsed.smartWarnings }));
+   346→   346→      if (parsed.networkLatency) setForm(f => ({ ...f, networkLatency: parsed.networkLatency }));
+   347→   347→      if (parsed.packetLoss) setForm(f => ({ ...f, packetLoss: parsed.packetLoss }));
+   348→   348→      if (parsed.dnsStatus) setForm(f => ({ ...f, dnsStatus: parsed.dnsStatus }));
+   349→   349→      if (parsed.antivirusEnabled !== undefined) setForm(f => ({ ...f, antivirusEnabled: parsed.antivirusEnabled }));
+   350→   350→      if (parsed.windowsUpdateStatus) setForm(f => ({ ...f, windowsUpdateStatus: parsed.windowsUpdateStatus }));
+   351→   351→      if (parsed.userSymptoms) setForm(f => ({ ...f, userSymptoms: parsed.userSymptoms }));
+   352→   352→      if (parsed.bsodHistory) {
+   353→   353→        if (Array.isArray(parsed.bsodHistory)) {
+   354→   354→          // bsodHistory is array of objects [{code, date}, ...] from PowerShell
+   355→   355→          const codes = parsed.bsodHistory
+   356→   356→            .filter((b: Record<string, unknown>) => b.code && typeof b.code === 'string')
+   357→   357→            .map((b: Record<string, unknown>) => b.code as string);
+   358→   358→          if (codes.length > 0) {
+   359→   359→            setForm(f => ({ ...f, bsodHistory: codes.join(", ") }));
+   360→   360→          }
+   361→   361→        } else if (typeof parsed.bsodHistory === 'string') {
+   362→   362→          setForm(f => ({ ...f, bsodHistory: parsed.bsodHistory }));
+   363→   363→        }
+   364→   364→      }
+   365→   365→      if (parsed.sfcResult) setForm(f => ({ ...f, sfcResult: parsed.sfcResult }));
+   366→   366→      if (parsed.dismHealth) setForm(f => ({ ...f, dismHealth: parsed.dismHealth }));
+   367→   367→      if (parsed.criticalEvents !== undefined) setForm(f => ({ ...f, criticalEvents: parsed.criticalEvents }));
+   368→   368→      setShowJsonUpload(false);
+   369→   369→      setJsonUploadData("");
+   370→   370→    } catch {
+   371→   371→      alert("Format JSON tidak valid. Pastikan JSON yang Anda paste sudah benar.");
+   372→   372→    }
+   373→   373→  };
+   374→   374→
+   375→   375→  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+   376→   376→    const file = e.target.files?.[0];
+   377→   377→    if (!file) return;
+   378→   378→    const reader = new FileReader();
+   379→   379→    reader.onload = (evt) => {
+   380→   380→      const content = evt.target?.result as string;
+   381→   381→      setJsonUploadData(content);
+   382→   382→      setShowJsonUpload(true);
+   383→   383→    };
+   384→   384→    reader.readAsText(file);
+   385→   385→  };
+   386→   386→
+   387→   387→  // ============================================================
+   388→   388→  // RENDER
+   389→   389→  // ============================================================
+   390→   390→
+   391→   391→  return (
+   392→   392→    <div className="min-h-screen flex flex-col bg-gradient-to-br from-slate-50 to-slate-100">
+   393→   393→      {/* Header */}
+   394→   394→      <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-sm border-b">
+   395→   395→        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
+   396→   396→          <div className="flex items-center gap-3">
+   397→   397→            <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center">
+   398→   398→              <Activity className="h-5 w-5 text-white" />
+   399→   399→            </div>
+   400→   400→            <div>
+   401→   401→              <h1 className="text-xl font-bold text-slate-900">PC Diagnostic Pro</h1>
+   402→   402→              <p className="text-xs text-slate-500">Analisis Kerusakan Komputer Otomatis</p>
+   403→   403→            </div>
+   404→   404→          </div>
+   405→   405→          <nav className="flex items-center gap-2">
+   406→   406→            <Button
+   407→   407→              variant={activeView === "dashboard" ? "default" : "ghost"}
+   408→   408→              size="sm"
+   409→   409→              onClick={() => { setAnalysisResult(null); setComputerInfo(null); setActiveView("dashboard"); }}
+   410→   410→            >
+   411→   411→              <Monitor className="h-4 w-4 mr-1.5" />
+   412→   412→              Dashboard
+   413→   413→            </Button>
+   414→   414→            <Button
+   415→   415→              variant={activeView === "diagnose" ? "default" : "ghost"}
+   416→   416→              size="sm"
+   417→   417→              onClick={() => setActiveView("diagnose")}
+   418→   418→            >
+   419→   419→              <Search className="h-4 w-4 mr-1.5" />
+   420→   420→              Diagnosa Baru
+   421→   421→            </Button>
+   422→   422→            <Button
+   423→   423→              variant={activeView === "history" ? "default" : "ghost"}
+   424→   424→              size="sm"
+   425→   425→              onClick={() => setActiveView("history")}
+   426→   426→            >
+   427→   427→              <History className="h-4 w-4 mr-1.5" />
+   428→   428→              Riwayat
+   429→   429→            </Button>
+   430→   430→          </nav>
+   431→   431→        </div>
+   432→   432→      </header>
+   433→   433→
+   434→   434→      {/* Main Content */}
+   435→   435→      <main className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 py-6">
+   436→   436→        {/* ==================== DASHBOARD VIEW ==================== */}
+   437→   437→        {activeView === "dashboard" && (
+   438→   438→          <div className="space-y-6">
+   439→   439→            {isAnalyzing ? (
+   440→   440→              <Card className="p-12 text-center">
+   441→   441→                <Loader2 className="h-12 w-12 animate-spin text-emerald-500 mx-auto mb-4" />
+   442→   442→                <h2 className="text-xl font-semibold mb-2">Menganalisis Komputer...</h2>
+   443→   443→                <p className="text-slate-500">Sedang memindai data dan mencocokkan dengan database kerusakan</p>
+   444→   444→              </Card>
+   445→   445→            ) : analysisResult ? (
+   446→   446→              <>
+   447→   447→                {/* Summary Card */}
+   448→   448→                <Card>
+   449→   449→                  <CardHeader className="pb-3">
+   450→   450→                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+   451→   451→                      <div className="flex-1">
+   452→   452→                        <CardTitle className="text-xl flex items-center gap-2">
+   453→   453→                          {analysisResult.issues.length === 0 ? (
+   454→   454→                            <CheckCircle2 className="h-6 w-6 text-green-500" />
+   455→   455→                          ) : (
+   456→   456→                            <AlertTriangle className="h-6 w-6 text-amber-500" />
+   457→   457→                          )}
+   458→   458→                          Hasil Analisis Diagnostik
+   459→   459→                        </CardTitle>
+   460→   460→                        <CardDescription className="mt-1">{analysisResult.summary}</CardDescription>
+   461→   461→                      </div>
+   462→   462→                      <SeverityGauge score={analysisResult.overallSeverity} />
+   463→   463→                    </div>
+   464→   464→                  </CardHeader>
+   465→   465→                </Card>
+   466→   466→
+   467→   467→                {/* Computer Info Cards */}
+   468→   468→                {computerInfo && (
+   469→   469→                  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+   470→   470→                    <InfoCard icon={<Monitor className="h-4 w-4" />} label="Komputer" value={computerInfo.computerName} />
+   471→   471→                    <InfoCard icon={<Cpu className="h-4 w-4" />} label="Prosesor" value={computerInfo.cpuModel || "-"} />
+   472→   472→                    <InfoCard icon={<MemoryStick className="h-4 w-4" />} label="RAM" value={computerInfo.totalRAMMB ? `${computerInfo.totalRAMMB} MB` : "-"} />
+   473→   473→                    <InfoCard icon={<HardDrive className="h-4 w-4" />} label="Storage" value={computerInfo.totalStorageGB ? `${computerInfo.totalStorageGB} GB` : "-"} />
+   474→   474→                    <InfoCard icon={<Shield className="h-4 w-4" />} label="GPU" value={computerInfo.gpuModel || "-"} />
+   475→   475→                    <InfoCard icon={<Zap className="h-4 w-4" />} label="OS" value={computerInfo.osVersion || "-"} />
+   476→   476→                  </div>
+   477→   477→                )}
+   478→   478→
+   479→   479→                {/* Recommendations */}
+   480→   480→                {analysisResult.recommendations.length > 0 && (
+   481→   481→                  <Card>
+   482→   482→                    <CardHeader className="pb-3">
+   483→   483→                      <CardTitle className="text-lg flex items-center gap-2">
+   484→   484→                        <Wrench className="h-5 w-5 text-emerald-600" />
+   485→   485→                        Rekomendasi Prioritas
+   486→   486→                      </CardTitle>
+   487→   487→                    </CardHeader>
+   488→   488→                    <CardContent>
+   489→   489→                      <ul className="space-y-2">
+   490→   490→                        {analysisResult.recommendations.map((rec, idx) => (
+   491→   491→                          <li key={idx} className="flex items-start gap-3 text-sm">
+   492→   492→                            <span className="flex-shrink-0 h-6 w-6 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center text-xs font-bold">
+   493→   493→                              {idx + 1}
+   494→   494→                            </span>
+   495→   495→                            <span className="text-slate-700 pt-0.5">{rec}</span>
+   496→   496→                          </li>
+   497→   497→                        ))}
+   498→   498→                      </ul>
+   499→   499→                    </CardContent>
+   500→   500→                  </Card>
+   501→   501→                )}
+   502→   502→
+   503→   503→                {/* Issues Detail */}
+   504→   504→                {analysisResult.issues.length > 0 && (
+   505→   505→                  <div className="space-y-4">
+   506→   506→                    <h2 className="text-lg font-semibold flex items-center gap-2">
+   507→   507→                      <AlertTriangle className="h-5 w-5 text-amber-500" />
+   508→   508→                      Detail Masalah Terdeteksi ({analysisResult.issues.length})
+   509→   509→                    </h2>
+   510→   510→                    <ScrollArea className="max-h-[800px]">
+   511→   511→                      <div className="space-y-4 pr-4">
+   512→   512→                        {analysisResult.issues.map((issue) => (
+   513→   513→                          <Card key={issue.id} className="overflow-hidden">
+   514→   514→                            <CardHeader className="pb-3">
+   515→   515→                              <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2">
+   516→   516→                                <div className="flex-1">
+   517→   517→                                  <div className="flex items-center gap-2 mb-1 flex-wrap">
+   518→   518→                                    <SeverityBadge severity={issue.severity} />
+   519→   519→                                    <Badge variant="outline" className="text-xs">{issue.category}</Badge>
+   520→   520→                                  </div>
+   521→   521→                                  <CardTitle className="text-base">{issue.title}</CardTitle>
+   522→   522→                                </div>
+   523→   523→                                <div className="flex items-center gap-2 text-xs text-muted-foreground flex-shrink-0">
+   524→   524→                                  <span className="font-medium">Keyakinan:</span>
+   525→   525→                                  <ConfidenceBar value={issue.confidence} />
+   526→   526→                                </div>
+   527→   527→                              </div>
+   528→   528→                            </CardHeader>
+   529→   529→                            <CardContent className="space-y-4">
+   530→   530→                              {/* Description */}
+   531→   531→                              <p className="text-sm text-slate-600">{issue.description}</p>
+   532→   532→
+   533→   533→                              {/* Matched indicators */}
+   534→   534→                              {(issue.matchedSymptoms.length > 0 || issue.matchedIndicators.length > 0) && (
+   535→   535→                                <div className="flex flex-col sm:flex-row gap-4">
+   536→   536→                                  {issue.matchedSymptoms.length > 0 && (
+   537→   537→                                    <div className="flex-1">
+   538→   538→                                      <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">
+   539→   539→                                        Gejala yang Cocok
+   540→   540→                                      </p>
+   541→   541→                                      <div className="flex flex-wrap gap-1.5">
+   542→   542→                                        {issue.matchedSymptoms.map((s, i) => (
+   543→   543→                                          <Badge key={i} variant="secondary" className="text-xs">{s}</Badge>
+   544→   544→                                        ))}
+   545→   545→                                      </div>
+   546→   546→                                    </div>
+   547→   547→                                  )}
+   548→   548→                                  {issue.matchedIndicators.length > 0 && (
+   549→   549→                                    <div className="flex-1">
+   550→   550→                                      <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">
+   551→   551→                                        Indikator Terdeteksi
+   552→   552→                                      </p>
+   553→   553→                                      <div className="flex flex-wrap gap-1.5">
+   554→   554→                                        {issue.matchedIndicators.map((ind, i) => (
+   555→   555→                                          <Badge key={i} variant="outline" className="text-xs border-amber-300 text-amber-700">{ind}</Badge>
+   556→   556→                                        ))}
+   557→   557→                                      </div>
+   558→   558→                                    </div>
+   559→   559→                                  )}
+   560→   560→                                </div>
+   561→   561→                              )}
+   562→   562→
+   563→   563→                              <Separator />
+   564→   564→
+   565→   565→                              {/* Solutions */}
+   566→   566→                              <div>
+   567→   567→                                <p className="text-sm font-semibold mb-3 flex items-center gap-1.5">
+   568→   568→                                  <Wrench className="h-4 w-4 text-emerald-600" />
+   569→   569→                                  Solusi Penanganan ({issue.solutions.length})
+   570→   570→                                </p>
+   571→   571→                                <div className="space-y-3">
+   572→   572→                                  {issue.solutions.map((sol, idx) => (
+   573→   573→                                    <div key={idx} className="border rounded-lg overflow-hidden">
+   574→   574→                                      <button
+   575→   575→                                        onClick={() => toggleSolution(`${issue.id}-${idx}`)}
+   576→   576→                                        className="w-full flex items-center justify-between px-4 py-3 bg-slate-50 hover:bg-slate-100 transition-colors text-left"
+   577→   577→                                      >
+   578→   578→                                        <div className="flex items-center gap-3">
+   579→   579→                                          <span className="flex-shrink-0 h-7 w-7 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center text-xs font-bold">
+   580→   580→                                            {idx + 1}
+   581→   581→                                          </span>
+   582→   582→                                          <div>
+   583→   583→                                            <p className="text-sm font-medium text-slate-800">{sol.title}</p>
+   584→   584→                                            <div className="flex items-center gap-2 mt-0.5">
+   585→   585→                                              <Badge variant="outline" className="text-[10px] h-4">
+   586→   586→                                                {sol.difficulty}
+   587→   587→                                              </Badge>
+   588→   588→                                              <span className="text-[10px] text-muted-foreground flex items-center gap-0.5">
+   589→   589→                                                <Clock className="h-3 w-3" />
+   590→   590→                                                {sol.estimatedTime}
+   591→   591→                                              </span>
+   592→   592→                                              <span className="text-[10px] text-muted-foreground">
+   593→   593→                                                {sol.successRate}% berhasil
+   594→   594→                                              </span>
+   595→   595→                                            </div>
+   596→   596→                                          </div>
+   597→   597→                                        </div>
+   598→   598→                                        {expandedSolutions.has(`${issue.id}-${idx}`) ? (
+   599→   599→                                          <ChevronDown className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+   600→   600→                                        ) : (
+   601→   601→                                          <ChevronRight className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+   602→   602→                                        )}
+   603→   603→                                      </button>
+   604→   604→                                      {expandedSolutions.has(`${issue.id}-${idx}`) && (
+   605→   605→                                        <div className="px-4 py-3 bg-white space-y-2">
+   606→   606→                                          <ol className="space-y-2">
+   607→   607→                                            {sol.steps.map((step, sIdx) => (
+   608→   608→                                              <li key={sIdx} className="flex items-start gap-2.5 text-sm text-slate-600">
+   609→   609→                                                <span className="flex-shrink-0 h-5 w-5 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center text-[10px] font-bold mt-0.5">
+   610→   610→                                                  {sIdx + 1}
+   611→   611→                                                </span>
+   612→   612→                                                <span>{step}</span>
+   613→   613→                                              </li>
+   614→   614→                                            ))}
+   615→   615→                                          </ol>
+   616→   616→                                          {sol.requiresReboot && (
+   617→   617→                                            <div className="flex items-center gap-1.5 text-xs text-amber-600 bg-amber-50 px-3 py-1.5 rounded-md mt-2">
+   618→   618→                                              <Zap className="h-3.5 w-3.5" />
+   619→   619→                                              Memerlukan restart komputer
+   620→   620→                                            </div>
+   621→   621→                                          )}
+   622→   622→                                        </div>
+   623→   623→                                      )}
+   624→   624→                                    </div>
+   625→   625→                                  ))}
+   626→   626→                                </div>
+   627→   627→                              </div>
+   628→   628→                            </CardContent>
+   629→   629→                          </Card>
+   630→   630→                        ))}
+   631→   631→                      </div>
+   632→   632→                    </ScrollArea>
+   633→   633→                  </div>
+   634→   634→                )}
+   635→   635→
+   636→   636→                {analysisResult.issues.length === 0 && (
+   637→   637→                  <Card className="p-8 text-center">
+   638→   638→                    <CheckCircle2 className="h-16 w-16 text-green-500 mx-auto mb-4" />
+   639→   639→                    <h3 className="text-xl font-semibold text-slate-900 mb-2">Komputer dalam Kondisi Sehat!</h3>
+   640→   640→                    <p className="text-slate-500 max-w-md mx-auto">
+   641→   641→                      Berdasarkan data diagnostik yang diberikan, tidak ditemukan masalah signifikan. Pastikan untuk melakukan pemeriksaan rutin secara berkala.
+   642→   642→                    </p>
+   643→   643→                  </Card>
+   644→   644→                )}
+   645→   645→
+   646→   646→                {/* Action buttons */}
+   647→   647→                <div className="flex flex-wrap gap-3">
+   648→   648→                  <Button onClick={() => setActiveView("diagnose")}>
+   649→   649→                    <Search className="h-4 w-4 mr-1.5" />
+   650→   650→                    Diagnosa Komputer Lain
+   651→   651→                  </Button>
+   652→   652→                </div>
+   653→   653→              </>
+   654→   654→            ) : (
+   655→   655→              /* Empty state - no analysis yet */
+   656→   656→              <Card className="p-12 text-center">
+   657→   657→                <div className="h-20 w-20 rounded-2xl bg-gradient-to-br from-emerald-100 to-teal-100 flex items-center justify-center mx-auto mb-6">
+   658→   658→                  <Activity className="h-10 w-10 text-emerald-600" />
+   659→   659→                </div>
+   660→   660→                <h2 className="text-2xl font-bold text-slate-900 mb-3">Selamat Datang di PC Diagnostic Pro</h2>
+   661→   661→                <p className="text-slate-500 max-w-lg mx-auto mb-8">
+   662→   662→                  Aplikasi ini membantu Anda menganalisis dan menemukan solusi untuk masalah komputer yang tidak terlihat secara kasat mata.
+   663→   663→                  Masukkan data diagnostik dari komputer yang bermasalah untuk memulai analisis.
+   664→   664→                </p>
+   665→   665→                <div className="flex flex-wrap gap-3 justify-center">
+   666→   666→                  <Button size="lg" onClick={() => setActiveView("diagnose")}>
+   667→   667→                    <Search className="h-5 w-5 mr-2" />
+   668→   668→                    Mulai Diagnosa Baru
+   669→   669→                  </Button>
+   670→   670→                  <Button size="lg" variant="outline" onClick={() => setActiveView("history")}>
+   671→   671→                    <History className="h-5 w-5 mr-2" />
+   672→   672→                    Lihat Riwayat
+   673→   673→                  </Button>
+   674→   674→                </div>
+   675→   675→
+   676→   676→                {/* Feature highlights */}
+   677→   677→                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-12 max-w-2xl mx-auto">
+   678→   678→                  <div className="text-center p-4">
+   679→   679→                    <div className="h-10 w-10 rounded-lg bg-emerald-100 flex items-center justify-center mx-auto mb-3">
+   680→   680→                      <Upload className="h-5 w-5 text-emerald-600" />
+   681→   681→                    </div>
+   682→   682→                    <h3 className="text-sm font-semibold mb-1">Upload Data</h3>
+   683→   683→                    <p className="text-xs text-slate-500">Upload JSON dari script PowerShell collector</p>
+   684→   684→                  </div>
+   685→   685→                  <div className="text-center p-4">
+   686→   686→                    <div className="h-10 w-10 rounded-lg bg-teal-100 flex items-center justify-center mx-auto mb-3">
+   687→   687→                      <Cpu className="h-5 w-5 text-teal-600" />
+   688→   688→                    </div>
+   689→   689→                    <h3 className="text-sm font-semibold mb-1">Input Manual</h3>
+   690→   690→                    <p className="text-xs text-slate-500">Atau masukkan data secara manual per kategori</p>
+   691→   691→                  </div>
+   692→   692→                  <div className="text-center p-4">
+   693→   693→                    <div className="h-10 w-10 rounded-lg bg-cyan-100 flex items-center justify-center mx-auto mb-3">
+   694→   694→                      <Wrench className="h-5 w-5 text-cyan-600" />
+   695→   695→                    </div>
+   696→   696→                    <h3 className="text-sm font-semibold mb-1">Solusi Praktis</h3>
+   697→   697→                    <p className="text-xs text-slate-500">Dapatkan rekomendasi solusi langkah-demi-langkah</p>
+   698→   698→                  </div>
+   699→   699→                </div>
+   700→   700→              </Card>
+   701→   701→            )}
+   702→   702→          </div>
+   703→   703→        )}
+   704→   704→
+   705→   705→        {/* ==================== DIAGNOSE VIEW ==================== */}
+   706→   706→        {activeView === "diagnose" && (
+   707→   707→          <div className="space-y-6">
+   708→   708→            <Card>
+   709→   709→              <CardHeader>
+   710→   710→                <CardTitle className="text-xl flex items-center gap-2">
+   711→   711→                  <Search className="h-5 w-5 text-emerald-600" />
+   712→   712→                  Diagnosa Komputer Baru
+   713→   713→                </CardTitle>
+   714→   714→                <CardDescription>
+   715→   715→                  Masukkan data diagnostik dari komputer yang bermasalah. Anda bisa mengisi secara manual atau upload file JSON dari script PowerShell.
+   716→   716→                </CardDescription>
+   717→   717→              </CardHeader>
+   718→   718→              <CardContent>
+   719→   719→                {/* Upload JSON Toggle */}
+   720→   720→                <div className="mb-6">
+   721→   721→                  <div className="flex items-center gap-3">
+   722→   722→                    <Button
+   723→   723→                      variant={showJsonUpload ? "default" : "outline"}
+   724→   724→                      size="sm"
+   725→   725→                      onClick={() => setShowJsonUpload(true)}
+   726→   726→                    >
+   727→   727→                      <FileText className="h-4 w-4 mr-1.5" />
+   728→   728→                      Upload / Paste JSON
+   729→   729→                    </Button>
+   730→   730→                    <span className="text-xs text-muted-foreground">atau isi form di bawah</span>
+   731→   731→                  </div>
+   732→   732→
+   733→   733→                  {showJsonUpload && (
+   734→   734→                    <div className="mt-3 space-y-3 border rounded-lg p-4 bg-slate-50">
+   735→   735→                      <div>
+   736→   736→                        <label className="text-sm font-medium block mb-1.5">
+   737→   737→                          Paste JSON dari script PowerShell
+   738→   738→                        </label>
+   739→   739→                        <textarea
+   740→   740→                          className="w-full h-48 rounded-md border bg-white p-3 text-xs font-mono focus:outline-none focus:ring-2 focus:ring-emerald-500"
+   741→   741→                          placeholder='{"computerName": "PC-KANTOR", "osVersion": "Windows 10 Pro", ...}'
+   742→   742→                          value={jsonUploadData}
+   743→   743→                          onChange={(e) => setJsonUploadData(e.target.value)}
+   744→   744→                        />
+   745→   745→                      </div>
+   746→   746→                      <div className="flex items-center gap-2">
+   747→   747→                        <Button size="sm" onClick={handleJsonUpload}>
+   748→   748→                          Isi Form dari JSON
+   749→   749→                        </Button>
+   750→   750→                        <span className="text-xs text-muted-foreground">atau</span>
+   751→   751→                        <label className="inline-flex items-center gap-1.5 cursor-pointer text-xs text-emerald-600 hover:underline">
+   752→   752→                          <Upload className="h-3.5 w-3.5" />
+   753→   753→                          Upload file .json
+   754→   754→                          <input type="file" accept=".json" className="hidden" onChange={handleFileUpload} />
+   755→   755→                        </label>
+   756→   756→                        <Button size="sm" variant="ghost" onClick={() => { setShowJsonUpload(false); setJsonUploadData(""); }}>
+   757→   757→                          Tutup
+   758→   758→                        </Button>
+   759→   759→                      </div>
+   760→   760→                    </div>
+   761→   761→                  )}
+   762→   762→                </div>
+   763→   763→
+   764→   764→                <Tabs defaultValue="system" className="w-full">
+   765→   765→                  <TabsList className="grid w-full grid-cols-4 mb-6">
+   766→   766→                    <TabsTrigger value="system">
+   767→   767→                      <Monitor className="h-3.5 w-3.5 mr-1.5" />
+   768→   768→                      <span className="hidden sm:inline">Sistem</span>
+   769→   769→                    </TabsTrigger>
+   770→   770→                    <TabsTrigger value="hardware">
+   771→   771→                      <Cpu className="h-3.5 w-3.5 mr-1.5" />
+   772→   772→                      <span className="hidden sm:inline">Hardware</span>
+   773→   773→                    </TabsTrigger>
+   774→   774→                    <TabsTrigger value="network">
+   775→   775→                      <Wifi className="h-3.5 w-3.5 mr-1.5" />
+   776→   776→                      <span className="hidden sm:inline">Jaringan</span>
+   777→   777→                    </TabsTrigger>
+   778→   778→                    <TabsTrigger value="symptoms">
+   779→   779→                      <AlertTriangle className="h-3.5 w-3.5 mr-1.5" />
+   780→   780→                      <span className="hidden sm:inline">Gejala</span>
+   781→   781→                    </TabsTrigger>
+   782→   782→                  </TabsList>
+   783→   783→
+   784→   784→                  {/* System Tab */}
+   785→   785→                  <TabsContent value="system" className="space-y-4">
+   786→   786→                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+   787→   787→                      <FormInput label="Nama Komputer" value={form.computerName} onChange={v => setForm({...form, computerName: v})} placeholder="contoh: PC-KANTOR-01" />
+   788→   788→                      <FormInput label="Versi OS" value={form.osVersion} onChange={v => setForm({...form, osVersion: v})} placeholder="contoh: Windows 10 Pro 22H2" />
+   789→   789→                      <FormSelect label="Status Antivirus" value={form.antivirusEnabled ? "aktif" : "nonaktif"} onChange={v => setForm({...form, antivirusEnabled: v === "aktif"})} options={["aktif", "nonaktif"]} />
+   790→   790→                      <FormInput label="Status Windows Update" value={form.windowsUpdateStatus} onChange={v => setForm({...form, windowsUpdateStatus: v})} placeholder="contoh: Up to date / Pending" />
+   791→   791→                      <FormInput label="Hasil SFC" value={form.sfcResult} onChange={v => setForm({...form, sfcResult: v})} placeholder="contoh: No violations found" />
+   792→   792→                      <FormInput label="Kesehatan DISM" value={form.dismHealth} onChange={v => setForm({...form, dismHealth: v})} placeholder="contoh: Healthy / Error" />
+   793→   793→                      <FormNumber label="Event Critical (jumlah)" value={form.criticalEvents} onChange={v => setForm({...form, criticalEvents: v})} />
+   794→   794→                      <FormInput label="Riwayat BSOD (pisahkan koma)" value={form.bsodHistory} onChange={v => setForm({...form, bsodHistory: v})} placeholder="contoh: MEMORY_MANAGEMENT, PAGE_FAULT" />
+   795→   795→                    </div>
+   796→   796→                  </TabsContent>
+   797→   797→
+   798→   798→                  {/* Hardware Tab */}
+   799→   799→                  <TabsContent value="hardware" className="space-y-4">
+   800→   800→                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+   801→   801→                      <FormInput label="Model CPU" value={form.cpuModel} onChange={v => setForm({...form, cpuModel: v})} placeholder="contoh: Intel Core i5-12400" />
+   802→   802→                      <FormNumber label="Jumlah Core CPU" value={form.cpuCores} onChange={v => setForm({...form, cpuCores: v})} />
+   803→   803→                      <FormNumber label="CPU Usage (%)" value={form.cpuUsage} onChange={v => setForm({...form, cpuUsage: Math.min(100, Math.max(0, v))})} />
+   804→   804→                      <FormNumber label="Suhu CPU (°C)" value={form.cpuTemperature} onChange={v => setForm({...form, cpuTemperature: v})} />
+   805→   805→                      <FormNumber label="Total RAM (MB)" value={form.totalRAMMB} onChange={v => setForm({...form, totalRAMMB: v})} />
+   806→   806→                      <FormNumber label="RAM Tersedia (MB)" value={form.availableRAMMB} onChange={v => setForm({...form, availableRAMMB: v})} />
+   807→   807→                      <FormNumber label="Total Storage (GB)" value={form.totalStorageGB} onChange={v => setForm({...form, totalStorageGB: v})} />
+   808→   808→                      <FormNumber label="Storage Tersedia (GB)" value={form.freeStorageGB} onChange={v => setForm({...form, freeStorageGB: v})} />
+   809→   809→                      <FormInput label="Model GPU" value={form.gpuModel} onChange={v => setForm({...form, gpuModel: v})} placeholder="contoh: NVIDIA RTX 3060" />
+   810→   810→                      <FormInput label="Driver GPU" value={form.gpuDriver} onChange={v => setForm({...form, gpuDriver: v})} placeholder="contoh: 546.33" />
+   811→   811→                      <FormNumber label="Suhu GPU (°C)" value={form.gpuTemperature} onChange={v => setForm({...form, gpuTemperature: v})} />
+   812→   812→                      <FormSelect label="Tipe Disk" value={form.diskType} onChange={v => setForm({...form, diskType: v})} options={["SSD", "HDD", "NVMe SSD"]} />
+   813→   813→                      <FormNumber label="Disk Usage (%)" value={form.diskUsage} onChange={v => setForm({...form, diskUsage: Math.min(100, Math.max(0, v))})} />
+   814→   814→                      <FormInput label="Disk Health" value={form.diskHealth} onChange={v => setForm({...form, diskHealth: v})} placeholder="OK / Caution / Bad" />
+   815→   815→                    </div>
+   816→   816→
+   817→   817→                    {/* SMART Warnings */}
+   818→   818→                    <div>
+   819→   819→                      <label className="text-sm font-medium block mb-1.5">SMART Warnings</label>
+   820→   820→                      <div className="flex gap-2 mb-2">
+   821→   821→                        <input
+   822→   822→                          type="text"
+   823→   823→                          className="flex-1 rounded-md border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+   824→   824→                          placeholder="contoh: Reallocated Sectors Count: 5"
+   825→   825→                          value={smartWarningInput}
+   826→   826→                          onChange={(e) => setSmartWarningInput(e.target.value)}
+   827→   827→                          onKeyDown={(e) => e.key === "Enter" && addSmartWarning()}
+   828→   828→                        />
+   829→   829→                        <Button size="sm" variant="outline" onClick={addSmartWarning}>Tambah</Button>
+   830→   830→                      </div>
+   831→   831→                      <div className="flex flex-wrap gap-1.5">
+   832→   832→                        {form.smartWarnings.map((w, i) => (
+   833→   833→                          <Badge key={i} variant="destructive" className="cursor-pointer" onClick={() => removeSmartWarning(i)}>
+   834→   834→                            {w} <XCircle className="h-3 w-3 ml-1" />
+   835→   835→                          </Badge>
+   836→   836→                        ))}
+   837→   837→                      </div>
+   838→   838→                    </div>
+   839→   839→                  </TabsContent>
+   840→   840→
+   841→   841→                  {/* Network Tab */}
+   842→   842→                  <TabsContent value="network" className="space-y-4">
+   843→   843→                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+   844→   844→                      <FormNumber label="Latensi Jaringan (ms)" value={form.networkLatency} onChange={v => setForm({...form, networkLatency: v})} />
+   845→   845→                      <FormNumber label="Packet Loss (%)" value={form.packetLoss} onChange={v => setForm({...form, packetLoss: Math.min(100, Math.max(0, v))})} />
+   846→   846→                      <FormInput label="Status DNS" value={form.dnsStatus} onChange={v => setForm({...form, dnsStatus: v})} placeholder="OK / Timeout / Fail" />
+   847→   847→                    </div>
+   848→   848→                  </TabsContent>
+   849→   849→
+   850→   850→                  {/* Symptoms Tab */}
+   851→   851→                  <TabsContent value="symptoms" className="space-y-4">
+   852→   852→                    <div>
+   853→   853→                      <label className="text-sm font-medium block mb-1.5">
+   854→   854→                        Gejala yang Dialami User (masukkan satu per satu)
+   855→   855→                      </label>
+   856→   856→                      <p className="text-xs text-muted-foreground mb-3">
+   857→   857→                        Contoh: komputer sering restart sendiri, layar biru muncul tiba-tiba, sangat lambat saat membuka aplikasi, fan berbunyi keras
+   858→   858→                      </p>
+   859→   859→                      <div className="flex gap-2 mb-3">
+   860→   860→                        <input
+   861→   861→                          type="text"
+   862→   862→                          className="flex-1 rounded-md border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+   863→   863→                          placeholder="Tuliskan gejala..."
+   864→   864→                          value={symptomInput}
+   865→   865→                          onChange={(e) => setSymptomInput(e.target.value)}
+   866→   866→                          onKeyDown={(e) => e.key === "Enter" && addSymptom()}
+   867→   867→                        />
+   868→   868→                        <Button size="sm" onClick={addSymptom}>Tambah</Button>
+   869→   869→                      </div>
+   870→   870→                      <div className="flex flex-wrap gap-1.5 min-h-[2rem]">
+   871→   871→                        {form.userSymptoms.map((s, i) => (
+   872→   872→                          <Badge key={i} variant="secondary" className="cursor-pointer py-1.5 px-3" onClick={() => removeSymptom(i)}>
+   873→   873→                            {s} <XCircle className="h-3 w-3 ml-1" />
+   874→   874→                          </Badge>
+   875→   875→                        ))}
+   876→   876→                      </div>
+   877→   877→                    </div>
+   878→   878→
+   879→   879→                    {/* Quick symptom buttons */}
+   880→   880→                    <div>
+   881→   881→                      <label className="text-xs font-medium text-muted-foreground block mb-2">Pilih Gejala Umum:</label>
+   882→   882→                      <div className="flex flex-wrap gap-1.5">
+   883→   883→                        {[
+   884→   884→                          "Komputer sangat lambat",
+   885→   885→                          "Blue Screen of Death (BSOD)",
+   886→   886→                          "Restart sendiri secara acak",
+   887→   887→                          "Fan berbunyi sangat keras",
+   888→   888→                          "Disk usage selalu 100%",
+   889→   889→                          "CPU usage selalu 100%",
+   890→   890→                          "RAM tidak cukup",
+   891→   891→                          "Internet terhubung tapi tidak bisa browsing",
+   892→   892→                          "Layar berkedip/flicker",
+   893→   893→                          "Aplikasi sering not responding",
+   894→   894→                          "File hilang atau corrupt",
+   895→   895→                          "Boot time sangat lambat",
+   896→   896→                          "Pop-up iklan muncul terus",
+   897→   897→                          "Windows Update selalu gagal",
+   898→   898→                        ].map((symptom) => (
+   899→   899→                          <Button
+   900→   900→                            key={symptom}
+   901→   901→                            size="sm"
+   902→   902→                            variant={form.userSymptoms.includes(symptom) ? "default" : "outline"}
+   903→   903→                            className="text-xs h-7"
+   904→   904→                            onClick={() => {
+   905→   905→                              if (!form.userSymptoms.includes(symptom)) {
+   906→   906→                                setForm({...form, userSymptoms: [...form.userSymptoms, symptom]});
+   907→   907→                              } else {
+   908→   908→                                removeSymptom(form.userSymptoms.indexOf(symptom));
+   909→   909→                              }
+   910→   910→                            }}
+   911→   911→                          >
+   912→   912→                            {symptom}
+   913→   913→                          </Button>
+   914→   914→                        ))}
+   915→   915→                      </div>
+   916→   916→                    </div>
+   917→   917→                  </TabsContent>
+   918→   918→                </Tabs>
+   919→   919→
+   920→   920→                {/* Submit */}
+   921→   921→                <Separator className="my-6" />
+   922→   922→                <div className="flex items-center gap-3">
+   923→   923→                  <Button size="lg" onClick={handleAnalyze} disabled={isAnalyzing || (form.userSymptoms.length === 0 && form.cpuTemperature === 0 && form.cpuUsage === 0 && form.bsodHistory === "" && form.criticalEvents === 0 && form.diskUsage === 0 && form.networkLatency === 0)}>
+   924→   924→                    {isAnalyzing ? (
+   925→   925→                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+   926→   926→                    ) : (
+   927→   927→                      <Search className="h-4 w-4 mr-2" />
+   928→   928→                    )}
+   929→   929→                    {isAnalyzing ? "Menganalisis..." : "Analisis Sekarang"}
+   930→   930→                  </Button>
+   931→   931→                  <p className="text-xs text-muted-foreground">
+   932→   932→                    Minimal isi gejala atau data hardware untuk mendapatkan hasil analisis. Semakin lengkap data, semakin akurat hasilnya.
+   933→   933→                  </p>
+   934→   934→                </div>
+   935→   935→              </CardContent>
+   936→   936→            </Card>
+   937→   937→          </div>
+   938→   938→        )}
+   939→   939→
+   940→   940→        {/* ==================== HISTORY VIEW ==================== */}
+   941→   941→        {activeView === "history" && (
+   942→   942→          <div className="space-y-6">
+   943→   943→            <Card>
+   944→   944→              <CardHeader>
+   945→   945→                <CardTitle className="text-xl flex items-center gap-2">
+   946→   946→                  <History className="h-5 w-5 text-emerald-600" />
+   947→   947→                  Riwayat Diagnostik
+   948→   948→                </CardTitle>
+   949→   949→                <CardDescription>Daftar semua komputer yang pernah dianalisis</CardDescription>
+   950→   950→              </CardHeader>
+   951→   951→              <CardContent>
+   952→   952→                {historyReports.length === 0 ? (
+   953→   953→                  <div className="text-center py-8 text-slate-500">
+   954→   954→                    <History className="h-12 w-12 mx-auto mb-3 text-slate-300" />
+   955→   955→                    <p>Belum ada riwayat diagnostik</p>
+   956→   956→                    <Button className="mt-3" size="sm" onClick={() => setActiveView("diagnose")}>
+   957→   957→                      Mulai Diagnosa Pertama
+   958→   958→                    </Button>
+   959→   959→                  </div>
+   960→   960→                ) : (
+   961→   961→                  <div className="space-y-3 max-h-[600px] overflow-y-auto">
+   962→   962→                    {historyReports.map((report) => (
+   963→   963→                      <div
+   964→   964→                        key={report.id}
+   965→   965→                        className="flex items-center justify-between p-4 border rounded-lg hover:bg-slate-50 transition-colors"
+   966→   966→                      >
+   967→   967→                        <div className="flex items-center gap-4">
+   968→   968→                          <div className={`h-10 w-10 rounded-lg flex items-center justify-center ${
+   969→   969→                            (report.severityScore ?? 0) >= 60 ? "bg-red-100" :
+   970→   970→                            (report.severityScore ?? 0) >= 40 ? "bg-amber-100" : "bg-green-100"
+   971→   971→                          }`}>
+   972→   972→                            {(report.severityScore ?? 0) >= 60 ? (
+   973→   973→                              <XCircle className="h-5 w-5 text-red-500" />
+   974→   974→                            ) : (report.severityScore ?? 0) >= 40 ? (
+   975→   975→                              <AlertTriangle className="h-5 w-5 text-amber-500" />
+   976→   976→                            ) : (
+   977→   977→                              <CheckCircle2 className="h-5 w-5 text-green-500" />
+   978→   978→                            )}
+   979→   979→                          </div>
+   980→   980→                          <div>
+   981→   981→                            <p className="text-sm font-medium">{report.computerName}</p>
+   982→   982→                            <p className="text-xs text-muted-foreground">
+   983→   983→                              {report.osVersion || "-"} | {report.cpuModel || "-"} | {report.totalRAMMB || "-"} MB RAM
+   984→   984→                            </p>
+   985→   985→                          </div>
+   986→   986→                        </div>
+   987→   987→                        <div className="text-right">
+   988→   988→                          <Badge variant={(report.severityScore ?? 0) >= 60 ? "destructive" : (report.severityScore ?? 0) >= 40 ? "default" : "secondary"}>
+   989→   989→                            Skor: {report.severityScore ?? 0}
+   990→   990→                          </Badge>
+   991→   991→                          <p className="text-[10px] text-muted-foreground mt-1">
+   992→   992→                            {new Date(report.createdAt).toLocaleString("id-ID")}
+   993→   993→                          </p>
+   994→   994→                        </div>
+   995→   995→                      </div>
+   996→   996→                    ))}
+   997→   997→                  </div>
+   998→   998→                )}
+   999→   999→              </CardContent>
+  1000→  1000→            </Card>
+  1001→  1001→          </div>
+  1002→  1002→        )}
+  1003→  1003→      </main>
+  1004→  1004→
+  1005→  1005→      {/* Footer */}
+  1006→  1006→      <footer className="border-t bg-white mt-auto">
+  1007→  1007→        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-muted-foreground">
+  1008→  1008→          <p>PC Diagnostic Pro — Analisis kerusakan komputer otomatis untuk Windows 10 & 11</p>
+  1009→  1009→          <p>Script PowerShell collector tersedia untuk mengumpulkan data di komputer user</p>
+  1010→  1010→        </div>
+  1011→  1011→      </footer>
+  1012→  1012→    </div>
+  1013→  1013→  );
+  1014→  1014→}
+  1015→  1015→
+  1016→  1016→// ============================================================
+  1017→  1017→// Sub-components
+  1018→  1018→// ============================================================
+  1019→  1019→
+  1020→  1020→function InfoCard({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
+  1021→  1021→  return (
+  1022→  1022→    <Card className="p-3">
+  1023→  1023→      <div className="flex items-center gap-2 mb-1">
+  1024→  1024→        <div className="text-emerald-600">{icon}</div>
+  1025→  1025→        <span className="text-[10px] text-muted-foreground uppercase tracking-wider">{label}</span>
+  1026→  1026→      </div>
+  1027→  1027→      <p className="text-xs font-medium truncate" title={value}>{value}</p>
+  1028→  1028→    </Card>
+  1029→  1029→  );
+  1030→  1030→}
+  1031→  1031→
+  1032→  1032→function FormInput({ label, value, onChange, placeholder }: { label: string; value: string; onChange: (v: string) => void; placeholder?: string }) {
+  1033→  1033→  return (
+  1034→  1034→    <div>
+  1035→  1035→      <label className="text-sm font-medium block mb-1.5">{label}</label>
+  1036→  1036→      <input
+  1037→  1037→        type="text"
+  1038→  1038→        className="w-full rounded-md border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+  1039→  1039→        placeholder={placeholder}
+  1040→  1040→        value={value}
+  1041→  1041→        onChange={(e) => onChange(e.target.value)}
+  1042→  1042→      />
+  1043→  1043→    </div>
+  1044→  1044→  );
+  1045→  1045→}
+  1046→  1046→
+  1047→  1047→function FormNumber({ label, value, onChange }: { label: string; value: number; onChange: (v: number) => void }) {
+  1048→  1048→  return (
+  1049→  1049→    <div>
+  1050→  1050→      <label className="text-sm font-medium block mb-1.5">{label}</label>
+  1051→  1051→      <input
+  1052→  1052→        type="number"
+  1053→  1053→        className="w-full rounded-md border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+  1054→  1054→        value={value || ""}
+  1055→  1055→        onChange={(e) => onChange(parseInt(e.target.value) || 0)}
+  1056→  1056→        min={0}
+  1057→  1057→      />
+  1058→  1058→    </div>
+  1059→  1059→  );
+  1060→  1060→}
+  1061→  1061→
+  1062→  1062→function FormSelect({ label, value, onChange, options }: { label: string; value: string; onChange: (v: string) => void; options: string[] }) {
+  1063→  1063→  return (
+  1064→  1064→    <div>
+  1065→  1065→      <label className="text-sm font-medium block mb-1.5">{label}</label>
+  1066→  1066→      <select
+  1067→  1067→        className="w-full rounded-md border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+  1068→  1068→        value={value}
+  1069→  1069→        onChange={(e) => onChange(e.target.value)}
+  1070→  1070→      >
+  1071→  1071→        {options.map((opt) => (
+  1072→  1072→          <option key={opt} value={opt}>{opt}</option>
+  1073→  1073→        ))}
+  1074→  1074→      </select>
+  1075→  1075→    </div>
+  1076→  1076→  );
+  1077→  1077→}
+  1078→  1078→

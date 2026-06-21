@@ -353,8 +353,13 @@ export default function DiagnosticApp() {
         if (Array.isArray(parsed.bsodHistory)) {
           // bsodHistory is array of objects [{code, date}, ...] from PowerShell
           const codes = parsed.bsodHistory
-            .filter((b: Record<string, unknown>) => b.code && typeof b.code === 'string')
-            .map((b: Record<string, unknown>) => b.code as string);
+            .filter((b: Record<string, unknown>) => b != null)
+            .map((b: Record<string, unknown>) => {
+              // Extract code from various possible field names
+              const raw = typeof b === 'string' ? b : String(b?.code ?? b?.errorCode ?? b?.BugCheckCode ?? b?.message ?? '');
+              return raw.trim();
+            })
+            .filter((s: string) => s.length > 0 && !s.includes('[object'));
           if (codes.length > 0) {
             setForm(f => ({ ...f, bsodHistory: codes.join(", ") }));
           }
@@ -552,7 +557,7 @@ export default function DiagnosticApp() {
                                       </p>
                                       <div className="flex flex-wrap gap-1.5">
                                         {issue.matchedIndicators.map((ind, i) => (
-                                          <Badge key={i} variant="outline" className="text-xs border-amber-300 text-amber-700">{ind}</Badge>
+                                          <Badge key={i} variant="outline" className="text-xs border-amber-300 text-amber-700">{typeof ind === 'string' ? ind : JSON.stringify(ind)}</Badge>
                                         ))}
                                       </div>
                                     </div>
