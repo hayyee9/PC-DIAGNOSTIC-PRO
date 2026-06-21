@@ -325,6 +325,15 @@ export default function DiagnosticApp() {
   const handleJsonUpload = () => {
     try {
       const parsed = JSON.parse(jsonUploadData);
+      // Reset form first, then fill from JSON
+      setForm(f => ({ ...f,
+        bsodHistory: "",
+        smartWarnings: [],
+        userSymptoms: [],
+        sfcResult: "",
+        dismHealth: "",
+        criticalEvents: 0,
+      }));
       // Fill form from JSON
       if (parsed.computerName) setForm(f => ({ ...f, computerName: parsed.computerName }));
       if (parsed.osVersion) setForm(f => ({ ...f, osVersion: parsed.osVersion }));
@@ -342,7 +351,15 @@ export default function DiagnosticApp() {
       if (parsed.diskType) setForm(f => ({ ...f, diskType: parsed.diskType }));
       if (parsed.diskUsage) setForm(f => ({ ...f, diskUsage: parsed.diskUsage }));
       if (parsed.diskHealth) setForm(f => ({ ...f, diskHealth: parsed.diskHealth }));
-      if (parsed.smartWarnings) setForm(f => ({ ...f, smartWarnings: parsed.smartWarnings }));
+      if (parsed.smartWarnings) {
+        if (Array.isArray(parsed.smartWarnings)) {
+          setForm(f => ({ ...f, smartWarnings: parsed.smartWarnings.map((w: unknown) => String(w)) }));
+        } else if (typeof parsed.smartWarnings === 'string') {
+          setForm(f => ({ ...f, smartWarnings: [parsed.smartWarnings] }));
+        } else if (typeof parsed.smartWarnings === 'object') {
+          setForm(f => ({ ...f, smartWarnings: [JSON.stringify(parsed.smartWarnings)] }));
+        }
+      }
       if (parsed.networkLatency) setForm(f => ({ ...f, networkLatency: parsed.networkLatency }));
       if (parsed.packetLoss) setForm(f => ({ ...f, packetLoss: parsed.packetLoss }));
       if (parsed.dnsStatus) setForm(f => ({ ...f, dnsStatus: parsed.dnsStatus }));
@@ -354,21 +371,28 @@ export default function DiagnosticApp() {
         let bsodArr: unknown[];
         if (Array.isArray(parsed.bsodHistory)) {
           bsodArr = parsed.bsodHistory;
-        } else if (typeof parsed.bsodHistory === 'object' && parsed.bsodHistory !== null && parsed.bsodHistory.code !== undefined) {
+        } else if (typeof parsed.bsodHistory === 'object' && parsed.bsodHistory !== null) {
           // Single object (was a 1-element array before JSON serialization)
           bsodArr = [parsed.bsodHistory];
         } else if (typeof parsed.bsodHistory === 'string') {
+          if (!parsed.bsodHistory.includes('[object')) {
+            setForm(f => ({ ...f, bsodHistory: parsed.bsodHistory }));
+          }
           bsodArr = [];
-          setForm(f => ({ ...f, bsodHistory: parsed.bsodHistory }));
         } else {
           bsodArr = [];
         }
+        // Always process and set bsodHistory to a clean string
         if (bsodArr.length > 0) {
           const codes = bsodArr
             .filter((b: unknown) => b != null)
             .map((b: Record<string, unknown>) => {
-              const raw = typeof b === 'string' ? b : String(b?.code ?? b?.errorCode ?? b?.BugCheckCode ?? b?.message ?? '');
-              return raw.trim();
+              if (typeof b === 'string') return b.trim();
+              const code = String(b?.code ?? b?.errorCode ?? b?.BugCheckCode ?? b?.message ?? '').trim();
+              if (code && code !== 'undefined') return code;
+              // No code field - create readable summary from date
+              const date = String(b?.date ?? '').substring(0, 10);
+              return date ? `BSOD (${date})` : 'BSOD';
             })
             .filter((s: string) => s.length > 0 && !s.includes('[object'));
           if (codes.length > 0) {
