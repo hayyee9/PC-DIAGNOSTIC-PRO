@@ -350,12 +350,23 @@ export default function DiagnosticApp() {
       if (parsed.windowsUpdateStatus) setForm(f => ({ ...f, windowsUpdateStatus: parsed.windowsUpdateStatus }));
       if (parsed.userSymptoms) setForm(f => ({ ...f, userSymptoms: parsed.userSymptoms }));
       if (parsed.bsodHistory) {
+        // Normalize: PowerShell ConvertTo-Json converts single-item arrays to a plain object
+        let bsodArr: unknown[];
         if (Array.isArray(parsed.bsodHistory)) {
-          // bsodHistory is array of objects [{code, date}, ...] from PowerShell
-          const codes = parsed.bsodHistory
-            .filter((b: Record<string, unknown>) => b != null)
+          bsodArr = parsed.bsodHistory;
+        } else if (typeof parsed.bsodHistory === 'object' && parsed.bsodHistory !== null && parsed.bsodHistory.code !== undefined) {
+          // Single object (was a 1-element array before JSON serialization)
+          bsodArr = [parsed.bsodHistory];
+        } else if (typeof parsed.bsodHistory === 'string') {
+          bsodArr = [];
+          setForm(f => ({ ...f, bsodHistory: parsed.bsodHistory }));
+        } else {
+          bsodArr = [];
+        }
+        if (bsodArr.length > 0) {
+          const codes = bsodArr
+            .filter((b: unknown) => b != null)
             .map((b: Record<string, unknown>) => {
-              // Extract code from various possible field names
               const raw = typeof b === 'string' ? b : String(b?.code ?? b?.errorCode ?? b?.BugCheckCode ?? b?.message ?? '');
               return raw.trim();
             })
@@ -363,8 +374,6 @@ export default function DiagnosticApp() {
           if (codes.length > 0) {
             setForm(f => ({ ...f, bsodHistory: codes.join(", ") }));
           }
-        } else if (typeof parsed.bsodHistory === 'string') {
-          setForm(f => ({ ...f, bsodHistory: parsed.bsodHistory }));
         }
       }
       if (parsed.sfcResult) setForm(f => ({ ...f, sfcResult: parsed.sfcResult }));

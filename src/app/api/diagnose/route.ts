@@ -56,18 +56,27 @@ export async function POST(request: NextRequest) {
       networkLatency: num(body.networkLatency),
       packetLoss: num(body.packetLoss),
       dnsStatus: str(body.dnsStatus),
-      bsodHistory: Array.isArray(body.bsodHistory) ? body.bsodHistory
-        .filter((b: unknown) => b != null)
-        .map((b: Record<string, unknown>) => {
-          // Normalize each entry to a clean {code, date} object
-          const code = typeof b === 'string' ? b : String(b?.code ?? b?.errorCode ?? b?.BugCheckCode ?? b?.message ?? '');
-          const date = String(b?.date ?? '');
-          return { code, date };
-        }) : undefined,
+      bsodHistory: (() => {
+        if (!body.bsodHistory) return undefined;
+        // Normalize: PowerShell ConvertTo-Json may send single object instead of array
+        const raw = Array.isArray(body.bsodHistory) ? body.bsodHistory :
+          (typeof body.bsodHistory === 'object' ? [body.bsodHistory] : undefined);
+        if (!raw) return undefined;
+        return raw
+          .filter((b: unknown) => b != null)
+          .map((b: Record<string, unknown>) => {
+            const code = typeof b === 'string' ? b : String(b?.code ?? b?.errorCode ?? b?.BugCheckCode ?? b?.message ?? '');
+            const date = String(b?.date ?? '');
+            return { code, date };
+          });
+      })(),
       criticalEvents: num(body.criticalEvents),
-      recentErrors: Array.isArray(body.recentErrors) ? body.recentErrors : undefined,
-      importantServices: Array.isArray(body.importantServices) ? body.importantServices : undefined,
-      startupPrograms: Array.isArray(body.startupPrograms) ? body.startupPrograms : undefined,
+      recentErrors: Array.isArray(body.recentErrors) ? body.recentErrors :
+        (body.recentErrors && typeof body.recentErrors === 'object' ? [body.recentErrors] : undefined),
+      importantServices: Array.isArray(body.importantServices) ? body.importantServices :
+        (body.importantServices && typeof body.importantServices === 'object' ? [body.importantServices] : undefined),
+      startupPrograms: Array.isArray(body.startupPrograms) ? body.startupPrograms :
+        (body.startupPrograms && typeof body.startupPrograms === 'object' ? [body.startupPrograms] : undefined),
       userSymptoms: Array.isArray(body.userSymptoms) ? body.userSymptoms.map(String) : undefined,
       antivirusEnabled: bool(body.antivirusEnabled) ?? false,
       windowsUpdateStatus: str(body.windowsUpdateStatus),

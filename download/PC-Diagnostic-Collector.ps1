@@ -332,6 +332,21 @@ try {
     Write-Host ""
     Write-Host "Menyimpan hasil..." -ForegroundColor Cyan
 
+    # Force all array fields to be proper JSON arrays (PowerShell ConvertTo-Json
+    # converts single-element arrays to plain objects, breaking the parser)
+    if ($DiagnosticData.bsodHistory -eq $null) { $DiagnosticData.bsodHistory = @() }
+    if (-not ($DiagnosticData.bsodHistory -is [System.Collections.IEnumerable])) { $DiagnosticData.bsodHistory = @($DiagnosticData.bsodHistory) }
+    if ($DiagnosticData.recentErrors -eq $null) { $DiagnosticData.recentErrors = @() }
+    if (-not ($DiagnosticData.recentErrors -is [System.Collections.IEnumerable])) { $DiagnosticData.recentErrors = @($DiagnosticData.recentErrors) }
+    if ($DiagnosticData.importantServices -eq $null) { $DiagnosticData.importantServices = @() }
+    if (-not ($DiagnosticData.importantServices -is [System.Collections.IEnumerable])) { $DiagnosticData.importantServices = @($DiagnosticData.importantServices) }
+    if ($DiagnosticData.startupPrograms -eq $null) { $DiagnosticData.startupPrograms = @() }
+    if (-not ($DiagnosticData.startupPrograms -is [System.Collections.IEnumerable])) { $DiagnosticData.startupPrograms = @($DiagnosticData.startupPrograms) }
+    if ($DiagnosticData.smartWarnings -eq $null) { $DiagnosticData.smartWarnings = @() }
+    if (-not ($DiagnosticData.smartWarnings -is [System.Collections.IEnumerable])) { $DiagnosticData.smartWarnings = @($DiagnosticData.smartWarnings) }
+    if ($DiagnosticData.userSymptoms -eq $null) { $DiagnosticData.userSymptoms = @() }
+    if (-not ($DiagnosticData.userSymptoms -is [System.Collections.IEnumerable])) { $DiagnosticData.userSymptoms = @($DiagnosticData.userSymptoms) }
+
     $JSON = $DiagnosticData | ConvertTo-Json -Depth 5 -Compress:$false
     $JSON | Out-File -FilePath $OutputFile -Encoding UTF8 -Force
 
