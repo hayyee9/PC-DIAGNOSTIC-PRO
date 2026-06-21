@@ -279,7 +279,7 @@ export default function DiagnosticApp() {
         antivirusEnabled: form.antivirusEnabled,
         windowsUpdateStatus: form.windowsUpdateStatus || undefined,
         userSymptoms: form.userSymptoms.length > 0 ? form.userSymptoms : undefined,
-        bsodHistory: form.bsodHistory ? parseBSOD(form.bsodHistory) : undefined,
+        bsodHistory: (() => { if (!form.bsodHistory || !form.bsodHistory.trim() || form.bsodHistory.includes('[object')) return undefined; const codes = form.bsodHistory.split(',').map(s => s.trim()).filter(s => s.length > 0 && !s.includes('[object')); if (codes.length === 0) return undefined; return codes.map(code => ({ code, date: new Date().toISOString() })); })(),
         sfcResult: form.sfcResult || undefined,
         dismHealth: form.dismHealth || undefined,
         criticalEvents: form.criticalEvents || undefined,
@@ -316,8 +316,9 @@ export default function DiagnosticApp() {
   };
 
   const parseBSOD = (text: string) => {
-    if (!text.trim()) return undefined;
-    const codes = text.split(",").map(s => s.trim()).filter(Boolean);
+    if (!text || !text.trim() || text.includes("[object")) return undefined;
+    const codes = text.split(",").map(s => s.trim()).filter(s => s.length > 0 && !s.includes("[object"));
+    if (codes.length === 0) return undefined;
     return codes.map(code => ({ code, date: new Date().toISOString() }));
   };
 
@@ -348,7 +349,19 @@ export default function DiagnosticApp() {
       if (parsed.antivirusEnabled !== undefined) setForm(f => ({ ...f, antivirusEnabled: parsed.antivirusEnabled }));
       if (parsed.windowsUpdateStatus) setForm(f => ({ ...f, windowsUpdateStatus: parsed.windowsUpdateStatus }));
       if (parsed.userSymptoms) setForm(f => ({ ...f, userSymptoms: parsed.userSymptoms }));
-      if (parsed.bsodHistory) setForm(f => ({ ...f, bsodHistory: parsed.bsodHistory }));
+      if (parsed.bsodHistory) {
+        if (Array.isArray(parsed.bsodHistory)) {
+          // bsodHistory is array of objects [{code, date}, ...] from PowerShell
+          const codes = parsed.bsodHistory
+            .filter((b: Record<string, unknown>) => b.code && typeof b.code === 'string')
+            .map((b: Record<string, unknown>) => b.code as string);
+          if (codes.length > 0) {
+            setForm(f => ({ ...f, bsodHistory: codes.join(", ") }));
+          }
+        } else if (typeof parsed.bsodHistory === 'string') {
+          setForm(f => ({ ...f, bsodHistory: parsed.bsodHistory }));
+        }
+      }
       if (parsed.sfcResult) setForm(f => ({ ...f, sfcResult: parsed.sfcResult }));
       if (parsed.dismHealth) setForm(f => ({ ...f, dismHealth: parsed.dismHealth }));
       if (parsed.criticalEvents !== undefined) setForm(f => ({ ...f, criticalEvents: parsed.criticalEvents }));
