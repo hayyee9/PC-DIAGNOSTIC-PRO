@@ -422,6 +422,41 @@ export default function DiagnosticApp() {
     reader.readAsText(file);
   };
 
+  // Upload JSON langsung ke server tanpa lewat form (fix [object Object])
+  const handleDirectUpload = async () => {
+    if (!jsonUploadData.trim()) {
+      alert("Paste atau upload file JSON terlebih dahulu.");
+      return;
+    }
+    setIsAnalyzing(true);
+    setAnalysisResult(null);
+    setComputerInfo(null);
+    try {
+      const res = await fetch("/api/diagnose", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: jsonUploadData,
+      });
+      if (!res.ok) throw new Error(`Server error (${res.status})`);
+      const data = await res.json();
+      if (data.success) {
+        setAnalysisResult(data.analysis);
+        setComputerInfo(data.computerInfo);
+        setReportId(data.reportId);
+        setActiveView("dashboard");
+        fetchHistory();
+        setShowJsonUpload(false);
+        setJsonUploadData("");
+      } else {
+        alert("Gagal menganalisis: " + data.error);
+      }
+    } catch (err: unknown) {
+      alert("Terjadi kesalahan: " + (err instanceof Error ? err.message : String(err)));
+    } finally {
+      setIsAnalyzing(false);
+    }
+  };
+
   // ============================================================
   // RENDER
   // ============================================================
@@ -437,7 +472,7 @@ export default function DiagnosticApp() {
             </div>
             <div>
               <h1 className="text-xl font-bold text-slate-900">PC Diagnostic Pro</h1>
-              <p className="text-xs text-slate-500">Analisis Kerusakan Komputer Otomatis</p>
+              <p className="text-xs text-slate-500">Analisis Kerusakan Komputer Otomatis <span className="text-emerald-600 font-semibold">v2.3</span></p>
             </div>
           </div>
           <nav className="flex items-center gap-2">
@@ -781,8 +816,14 @@ export default function DiagnosticApp() {
                           onChange={(e) => setJsonUploadData(e.target.value)}
                         />
                       </div>
-                      <div className="flex items-center gap-2">
-                        <Button size="sm" onClick={handleJsonUpload}>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <Button size="sm" onClick={handleDirectUpload} disabled={!jsonUploadData.trim()}>
+                          <Zap className="h-3.5 w-3.5 mr-1" />
+                          Upload & Analisis Langsung
+                        </Button>
+                        <span className="text-xs text-muted-foreground">disarankan</span>
+                        <span className="text-xs text-muted-foreground mx-1">|</span>
+                        <Button size="sm" variant="outline" onClick={handleJsonUpload}>
                           Isi Form dari JSON
                         </Button>
                         <span className="text-xs text-muted-foreground">atau</span>
