@@ -29,7 +29,7 @@ try {
 
     Write-Host ""
     Write-Host "================================================" -ForegroundColor Cyan
-    Write-Host "  PC Diagnostic Pro - Data Collector v2.0" -ForegroundColor Cyan
+    Write-Host "  PC Diagnostic Pro - Data Collector v3.0" -ForegroundColor Cyan
     Write-Host "  Mengumpulkan data diagnostik komputer..." -ForegroundColor Cyan
     Write-Host "  JANGAN TUTUP jendela ini sampai selesai!" -ForegroundColor Yellow
     Write-Host "================================================" -ForegroundColor Cyan
@@ -41,6 +41,13 @@ try {
     $OutputFolder = [Environment]::GetFolderPath("Desktop")
     $Timestamp = Get-Date -Format "yyyyMMdd_HHmmss"
     $OutputFile = Join-Path $OutputFolder "pc-diagnostic-$Timestamp.json"
+
+    # ============================================================
+    # Konfigurasi Server (ubah URL di bawah sesuai server kamu)
+    # ============================================================
+    $ServerURL = "http://localhost:3000/api/diagnose"
+    # Ganti URL di atas dengan URL server kamu, contoh:
+    # $ServerURL = "https://pc-diagnostic-yourname.vercel.app/api/diagnose"
 
     $DiagnosticData = @{}
 
@@ -330,7 +337,7 @@ try {
     # OUTPUT - Simpan ke file JSON
     # ============================================================
     Write-Host ""
-    Write-Host "Menyimpan hasil..." -ForegroundColor Cyan
+    Write-Host "[11/11] Mengirim data ke server..." -ForegroundColor Yellow -NoNewline
 
     # Force all array fields to be proper JSON arrays (PowerShell ConvertTo-Json
     # converts single-element arrays to plain objects, breaking the parser)
@@ -352,6 +359,7 @@ try {
 
     $fileSize = (Get-Item $OutputFile -ErrorAction SilentlyContinue).Length
     if ($fileSize -gt 0) {
+        Write-Host " OK" -ForegroundColor Green
         Write-Host ""
         Write-Host "================================================" -ForegroundColor Green
         Write-Host "  BERHASIL!" -ForegroundColor Green
@@ -361,11 +369,79 @@ try {
         Write-Host "  $OutputFile" -ForegroundColor Yellow
         Write-Host "  Ukuran: $([math]::Round($fileSize / 1KB, 1)) KB" -ForegroundColor White
         Write-Host ""
-        Write-Host "  LANGKAH SELANJUTNYA:" -ForegroundColor Cyan
-        Write-Host "  1. Kirim file ini ke admin / teknisi" -ForegroundColor White
-        Write-Host "  2. Admin akan upload file ke PC Diagnostic Pro" -ForegroundColor White
-        Write-Host "  3. Hasil analisis akan menunjukkan masalah & solusi" -ForegroundColor White
+
+        # ============================================================
+        # KIRIM OTOMATIS KE SERVER
+        # ============================================================
+        Write-Host "================================================" -ForegroundColor Cyan
+        Write-Host "  MENGIRIM DATA KE SERVER..." -ForegroundColor Cyan
+        Write-Host "================================================" -ForegroundColor Cyan
         Write-Host ""
+
+        try {
+            $Response = Invoke-RestMethod -Uri $ServerURL -Method POST -ContentType "application/json; charset=utf-8" -Body $JSON -TimeoutSec 30
+
+            if ($Response.success -eq $true) {
+                Write-Host "  BERHASIL dikirim ke server!" -ForegroundColor Green
+                Write-Host ""
+                Write-Host "  Hasil Analisis:" -ForegroundColor Yellow
+                Write-Host "  Masalah ditemukan: $($Response.analysis.issues.Count)" -ForegroundColor White
+                Write-Host "  Skor keseluruhan: $($Response.analysis.overallSeverity)" -ForegroundColor White
+                Write-Host ""
+                Write-Host "  Ringkasan:" -ForegroundColor Yellow
+                Write-Host "  $($Response.analysis.summary)" -ForegroundColor White
+                Write-Host ""
+
+                if ($Response.analysis.issues.Count -gt 0) {
+                    Write-Host "  Detail Masalah:" -ForegroundColor Yellow
+                    $idx = 1
+                    foreach ($issue in $Response.analysis.issues) {
+                        $sevColor = if ($issue.severity -eq "critical") {"Red"} elseif ($issue.severity -eq "high") {"Yellow"} else {"White"}
+                        Write-Host "  $idx. [$($issue.severity.ToUpper())] $($issue.title)" -ForegroundColor $sevColor
+                        Write-Host "     Keyakinan: $($issue.confidence)% | Solusi: $($issue.solutions.Count)" -ForegroundColor DarkGray
+                        $idx++
+                    }
+                    Write-Host ""
+                }
+
+                if ($Response.analysis.recommendations) {
+                    Write-Host "  Rekomendasi:" -ForegroundColor Yellow
+                    foreach ($rec in $Response.analysis.recommendations) {
+                        Write-Host "  - $rec" -ForegroundColor Cyan
+                    }
+                    Write-Host ""
+                }
+
+                # Buka browser otomatis ke dashboard
+                $DashboardURL = $ServerURL -replace "/api/diagnose", ""
+                Write-Host "  Lihat detail lengkap di browser:" -ForegroundColor White
+                Write-Host "  $DashboardURL" -ForegroundColor Green
+                Write-Host ""
+                try {
+                    Start-Process $DashboardURL
+                } catch {
+                    Write-Host "  (Buka manual URL di atas di browser kamu)" -ForegroundColor DarkGray
+                }
+            } else {
+                Write-Host "  Gagal: $($Response.error)" -ForegroundColor Red
+                Write-Host ""
+                Write-Host "  File JSON tetap tersimpan, kamu bisa upload manual." -ForegroundColor Yellow
+            }
+        } catch {
+            Write-Host ""
+            Write-Host "  Gagal mengirim ke server!" -ForegroundColor Red
+            Write-Host "  Error: $($_.Exception.Message)" -ForegroundColor DarkRed
+            Write-Host ""
+            Write-Host "  Kemungkinan penyebab:" -ForegroundColor Yellow
+            Write-Host "  1. Komputer tidak terhubung internet" -ForegroundColor White
+            Write-Host "  2. Server sedang tidak aktif" -ForegroundColor White
+            Write-Host "  3. Firewall memblokir koneksi" -ForegroundColor White
+            Write-Host ""
+            Write-Host "  TIDAK APA-APA! File JSON tetap tersimpan:" -ForegroundColor Green
+            Write-Host "  $OutputFile" -ForegroundColor Yellow
+            Write-Host "  Kamu bisa upload file ini secara manual ke web dashboard." -ForegroundColor White
+            Write-Host ""
+        }
     } else {
         Write-Host ""
         Write-Host "  ERROR: File tidak berhasil dibuat!" -ForegroundColor Red

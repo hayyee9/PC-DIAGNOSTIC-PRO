@@ -4,6 +4,13 @@ import { analyzeDiagnostic, type DiagnosticData } from "@/lib/diagnostic-engine"
 
 // POST /api/diagnose - Menerima data diagnostik dan menganalisis
 export async function POST(request: NextRequest) {
+  // CORS headers (untuk PowerShell script yang kirim dari PC user)
+  const headers = {
+    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Methods": "POST, GET, OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type",
+  };
+
   try {
     let body: Record<string, unknown>;
     try {
@@ -11,7 +18,7 @@ export async function POST(request: NextRequest) {
     } catch {
       return NextResponse.json(
         { success: false, error: "Format JSON tidak valid. Pastikan data yang dikirim berformat JSON yang benar." },
-        { status: 400 }
+        { status: 400, headers }
       );
     }
 
@@ -172,12 +179,12 @@ export async function POST(request: NextRequest) {
         totalStorageGB: diagnosticData.totalStorageGB,
         gpuModel: diagnosticData.gpuModel,
       },
-    });
+    }, { headers });
   } catch (error) {
     console.error("Diagnostic analysis error:", error);
     return NextResponse.json(
       { success: false, error: "Gagal menganalisis data diagnostik" },
-      { status: 500 }
+      { status: 500, headers }
     );
   }
 }
@@ -202,12 +209,25 @@ export async function GET() {
         status: r.status,
         createdAt: r.createdAt,
       })),
-    });
+    }, { headers });
   } catch (error) {
     console.error("Fetch reports error:", error);
     return NextResponse.json(
       { success: false, error: "Gagal mengambil laporan" },
-      { status: 500 }
+      { status: 500, headers }
     );
   }
+}
+
+// OPTIONS /api/diagnose - CORS preflight
+export async function OPTIONS() {
+  return new NextResponse(null, {
+    status: 204,
+    headers: {
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Methods": "POST, GET, OPTIONS",
+      "Access-Control-Allow-Headers": "Content-Type",
+      "Access-Control-Max-Age": "86400",
+    },
+  });
 }
