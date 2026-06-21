@@ -291,6 +291,11 @@ export default function DiagnosticApp() {
         body: JSON.stringify(payload),
       });
 
+      if (!res.ok) {
+        const errorText = await res.text().catch(() => "Unknown error");
+        throw new Error(`Server error (${res.status}): ${errorText}`);
+      }
+
       const data = await res.json();
       if (data.success) {
         setAnalysisResult(data.analysis);
@@ -301,9 +306,10 @@ export default function DiagnosticApp() {
       } else {
         alert("Gagal menganalisis: " + data.error);
       }
-    } catch (err) {
-      alert("Terjadi kesalahan saat menghubungi server. Silakan coba lagi.");
-      console.error(err);
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : String(err);
+      console.error("Diagnostic analysis error:", err);
+      alert("Terjadi kesalahan: " + errorMessage + "\n\nPastikan:\n1. Koneksi internet stabil\n2. Coba refresh halaman lalu coba lagi\n3. Jika upload JSON, pastikan format JSON valid");
     } finally {
       setIsAnalyzing(false);
     }

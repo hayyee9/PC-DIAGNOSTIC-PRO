@@ -5,42 +5,67 @@ import { analyzeDiagnostic, type DiagnosticData } from "@/lib/diagnostic-engine"
 // POST /api/diagnose - Menerima data diagnostik dan menganalisis
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
+    let body: Record<string, unknown>;
+    try {
+      body = await request.json();
+    } catch {
+      return NextResponse.json(
+        { success: false, error: "Format JSON tidak valid. Pastikan data yang dikirim berformat JSON yang benar." },
+        { status: 400 }
+      );
+    }
+
+    // Sanitize numeric values - ensure they are numbers, not strings
+    const num = (v: unknown): number | undefined => {
+      if (v === undefined || v === null || v === "") return undefined;
+      const n = typeof v === "number" ? v : Number(v);
+      return isNaN(n) ? undefined : n;
+    };
+
+    const str = (v: unknown): string | undefined => {
+      if (v === undefined || v === null || v === "") return undefined;
+      return String(v);
+    };
+
+    const bool = (v: unknown): boolean | undefined => {
+      if (v === undefined || v === null) return undefined;
+      return Boolean(v);
+    };
 
     // Parse diagnostic data
     const diagnosticData: DiagnosticData = {
-      computerName: body.computerName || "Unknown PC",
-      osVersion: body.osVersion,
-      osBuild: body.osBuild,
-      uptime: body.uptime,
-      cpuModel: body.cpuModel,
-      cpuCores: body.cpuCores,
-      cpuUsage: body.cpuUsage,
-      cpuTemperature: body.cpuTemperature,
-      totalRAMMB: body.totalRAMMB,
-      availableRAMMB: body.availableRAMMB,
-      totalStorageGB: body.totalStorageGB,
-      freeStorageGB: body.freeStorageGB,
-      gpuModel: body.gpuModel,
-      gpuDriver: body.gpuDriver,
-      gpuTemperature: body.gpuTemperature,
-      diskType: body.diskType,
-      diskHealth: body.diskHealth,
-      smartWarnings: body.smartWarnings,
-      diskUsage: body.diskUsage,
-      networkLatency: body.networkLatency,
-      packetLoss: body.packetLoss,
-      dnsStatus: body.dnsStatus,
-      bsodHistory: body.bsodHistory,
-      criticalEvents: body.criticalEvents,
-      recentErrors: body.recentErrors,
-      importantServices: body.importantServices,
-      startupPrograms: body.startupPrograms,
-      userSymptoms: body.userSymptoms,
-      antivirusEnabled: body.antivirusEnabled,
-      windowsUpdateStatus: body.windowsUpdateStatus,
-      sfcResult: body.sfcResult,
-      dismHealth: body.dismHealth,
+      computerName: str(body.computerName) || "Unknown PC",
+      osVersion: str(body.osVersion),
+      osBuild: str(body.osBuild),
+      uptime: str(body.uptime),
+      cpuModel: str(body.cpuModel),
+      cpuCores: num(body.cpuCores),
+      cpuUsage: num(body.cpuUsage),
+      cpuTemperature: num(body.cpuTemperature),
+      totalRAMMB: num(body.totalRAMMB),
+      availableRAMMB: num(body.availableRAMMB),
+      totalStorageGB: num(body.totalStorageGB),
+      freeStorageGB: num(body.freeStorageGB),
+      gpuModel: str(body.gpuModel),
+      gpuDriver: str(body.gpuDriver),
+      gpuTemperature: num(body.gpuTemperature),
+      diskType: str(body.diskType),
+      diskHealth: str(body.diskHealth),
+      smartWarnings: Array.isArray(body.smartWarnings) ? body.smartWarnings.map(String) : undefined,
+      diskUsage: num(body.diskUsage),
+      networkLatency: num(body.networkLatency),
+      packetLoss: num(body.packetLoss),
+      dnsStatus: str(body.dnsStatus),
+      bsodHistory: Array.isArray(body.bsodHistory) ? body.bsodHistory : undefined,
+      criticalEvents: num(body.criticalEvents),
+      recentErrors: Array.isArray(body.recentErrors) ? body.recentErrors : undefined,
+      importantServices: Array.isArray(body.importantServices) ? body.importantServices : undefined,
+      startupPrograms: Array.isArray(body.startupPrograms) ? body.startupPrograms : undefined,
+      userSymptoms: Array.isArray(body.userSymptoms) ? body.userSymptoms.map(String) : undefined,
+      antivirusEnabled: bool(body.antivirusEnabled) ?? false,
+      windowsUpdateStatus: str(body.windowsUpdateStatus),
+      sfcResult: str(body.sfcResult),
+      dismHealth: str(body.dismHealth),
     };
 
     // Run analysis
