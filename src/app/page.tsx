@@ -967,6 +967,7 @@ export default function DiagnosticApp() {
                           "Disk usage selalu 100%",
                           "CPU usage selalu 100%",
                           "RAM tidak cukup",
+                          "Baterai cepat habis / boros",
                           "Internet terhubung tapi tidak bisa browsing",
                           "Layar berkedip/flicker",
                           "Aplikasi sering not responding",

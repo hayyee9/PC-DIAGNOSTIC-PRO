@@ -920,6 +920,127 @@ export const KNOWLEDGE_BASE: DiagnosticIssue[] = [
     ]
   },
 
+  // ==================== BATERAI / BATTERY ====================
+  {
+    id: "battery-drain",
+    category: "Baterai & Daya",
+    title: "Baterai Cepat Habis / Boros (Battery Drain)",
+    severity: "high",
+    symptoms: [
+      "Baterai laptop cepat habis meskipun tidak digunakan berat",
+      "Baterai drop drastis dalam waktu singkat",
+      "Persentase baterai tidak akurat atau loncat-loncat",
+      "Laptop mati mendadak padahal baterai masih terisi",
+      "Baterai hanya bertahan 1-2 jam padahal dulu bisa 5+ jam"
+    ],
+    indicators: [
+      "batteryHealth < 40",
+      "batteryCapacityDegraded",
+      "batteryDrainRate high",
+      "batteryAge > 3 years"
+    ],
+    description: "Baterai laptop yang cepat habis (boros) adalah masalah sangat umum, terutama pada laptop berumur lebih dari 2 tahun. Baterai lithium-ion secara alami mengalami degradasi kapasitas seiring waktu. Namun, baterai yang boros juga bisa disebabkan oleh proses background yang konsumsi tinggi, setting power management yang salah, driver yang bermasalah, atau bahkan baterai yang sudah mengembang (swollen). Pada kasus baterai yang mengembang, hal ini BAHAYA dan harus segera ditangani karena bisa merusak komponen lain di dalam laptop.",
+    solutions: [
+      {
+        title: "Cek Kesehatan Baterai dengan powercfg",
+        steps: [
+          "Buka Command Prompt sebagai Administrator",
+          "Ketik: powercfg /batteryreport",
+          "Tekan Enter, laporan akan tersimpan di C:\\Windows\\System32\\battery-report.html (atau folder user)",
+          "Buka file battery-report.html dengan browser",
+          "Perhatikan bagian 'Design Capacity' vs 'Full Charge Capacity'",
+          "Jika Full Charge Capacity < 50% dari Design Capacity, baterai perlu diganti",
+          "Juga perhatikan baris 'Cycle Count' — semakin tinggi semakin aus"
+        ],
+        difficulty: "mudah",
+        requiresReboot: false,
+        estimatedTime: "5 menit",
+        successRate: 90
+      },
+      {
+        title: "Optimalkan Pengaturan Daya Windows",
+        steps: [
+          "Buka Settings > System > Power & battery",
+          "Pilih 'Power mode' dan ubah ke 'Best power efficiency' saat pakai baterai",
+          "Di 'Battery saver', aktifkan otomatis di bawah 20%",
+          "Klik 'Battery usage' untuk melihat aplikasi mana yang paling boros",
+          "Scroll ke bawah, aktifkan 'Battery usage per app' untuk detail",
+          "Untuk aplikasi boros: klik > pilih 'Manage' > 'Advanced options' > atur 'Background activity' ke 'Never'",
+          "Matikan fitur 'Refresh rate' otomatis jika ada (Setting > Display > Advanced display)"
+        ],
+        difficulty: "mudah",
+        requiresReboot: false,
+        estimatedTime: "10 menit",
+        successRate: 50
+      },
+      {
+        title: "Kurangi Aplikasi Background yang Boros",
+        steps: [
+          "Buka Task Manager (Ctrl+Shift+Esc) > tab 'Startup'",
+          "Disable aplikasi yang tidak perlu auto-start saat baterai",
+          "Klik tab 'Processes' > kolom 'Power usage'",
+          "Sortir berdasarkan 'Power usage' dan hentikan aplikasi yang sangat tinggi",
+          "Matikan Bluetooth jika tidak digunakan (Setting > Bluetooth > Off)",
+          "Matikan WiFi jika tidak perlu (klik ikon WiFi di taskbar > Disconnect)",
+          "Turunkan brightness layar (shortcut: Fn + brightness key atau klik ikon baterai)",
+          "Matikan keyboard backlight saat tidak perlu"
+        ],
+        difficulty: "mudah",
+        requiresReboot: false,
+        estimatedTime: "5-10 menit",
+        successRate: 40
+      },
+      {
+        title: "Update Driver & Windows (Fix Software Drain)",
+        steps: [
+          "Buka Device Manager > 'System devices' atau 'Batteries'",
+          "Klik kanan 'Microsoft ACPI-Compliant Control Method Battery' > Update driver",
+          "Cek juga driver chipset dan grafis — driver lama bisa menyebabkan drain berlebih",
+          "Jalankan Windows Update (Setting > Update & Security > Check for updates)",
+          "Setelah semua driver dan update terpasang, restart laptop",
+          "Observasi apakah daya tahan baterai membaik dalam 1-2 hari"
+        ],
+        difficulty: "mudah",
+        requiresReboot: true,
+        estimatedTime: "20-30 menit",
+        successRate: 35
+      },
+      {
+        title: "Kalibrasi Ulang Baterai",
+        steps: [
+          "Gunakan laptop sampai baterai benar-benar habis (0%) dan laptop mati sendiri",
+          "Charge laptop sampai 100% TANPA menyalakan / gunakan dulu",
+          "Setelah terisi penuh, tunggu 2 jam lagi sambil tetap tercolok charger",
+          "Nyalakan laptop dan gunakan normal sampai baterai habis lagi",
+          "Ulangi siklus ini 2-3 kali",
+          "Setelah kalibrasi, cek apakah persentase baterai lebih akurat",
+          "Catatan: Kalibrasi TIDAK memulihkan kapasitas fisik, hanya memperbaiki pembacaan sensor"
+        ],
+        difficulty: "mudah",
+        requiresReboot: false,
+        estimatedTime: "2-3 hari (proses kalibrasi)",
+        successRate: 25
+      },
+      {
+        title: "Ganti Baterai Baru",
+        steps: [
+          "Jika Full Charge Capacity < 40% dari Design Capacity, penggantian wajib",
+          "Catat model laptop yang tepat (cek di sticker bawah laptop)",
+          "Cari baterai pengganti online (Tokopedia, Shopee, iFixit, AliExpress)",
+          "Pastikan beli baterai ORIGINAL atau OEM berkualitas, bukan KW murahan",
+          "Baterai KW murahan bisa meledak atau merusak laptop — HINDARI!",
+          "Untuk laptop modern: bawa ke service center resmi (baterai biasanya tertanam)",
+          "Untuk laptop lama: banyak model baterai bisa diganti sendiri dengan obeng kecil",
+          "Setelah ganti, lakukan kalibrasi (lihat solusi di atas)"
+        ],
+        difficulty: "sedang",
+        requiresReboot: false,
+        estimatedTime: "15-30 menit (+ biaya baterai)",
+        successRate: 100
+      }
+    ]
+  },
+
   // ==================== POWER SUPPLY ====================
   {
     id: "psu-unstable",
@@ -1072,6 +1193,8 @@ const SYMPTOM_KEYWORD_MAP: Record<string, string[]> = {
   "malware-infection": ["pop-up", "popup", "iklan", "ads", "virus", "malware", "antivirus mati", "antivirus nonaktif", "program tidak dikenal", "data tinggi", "browser redirect", "hijack"],
   // Power
   "psu-unstable": ["restart gaming", "bsod gaming", "psu", "power supply", "usb disconnect", "kipas psu bunyi", "psu bunyi", "voltase", "tidak mau nyala"],
+  // Battery
+  "battery-drain": ["baterai", "battery", "batere", "boros", "drop", "cepat habis", "ketahanan", "daya tahan", "charge", "cas", "ngecas", "mengisi", "baterai cepat", "baterai drop", "baterai boros", "baterai awet", "baterai abis", "baterai mati", "persentase baterai", "loncat", "swollen", "mengembang", "bengkak", "konsumsi daya", "power usage", "efficiency", "hemat baterai"],
 };
 
 function matchSymptomsByKeywords(userSymptoms: string[], issueId: string): string[] {
