@@ -122,12 +122,24 @@ try {
     $Disks = Get-CimInstance -ClassName Win32_LogicalDisk -Filter "DriveType=3" -ErrorAction SilentlyContinue
     $PhysicalDisks = Get-CimInstance -ClassName Win32_DiskDrive -ErrorAction SilentlyContinue
 
+    # Hitung dari DISK FISIK (bukan logical partition) untuk kapasitas yang akurat
     $TotalStorageGB = 0
+    foreach ($pd in $PhysicalDisks) {
+        if ($pd.Size -and $pd.Size -gt 0) {
+            $TotalStorageGB += [math]::Round($pd.Size / 1GB, 1)
+        }
+    }
+    # Fallback: kalau Win32_DiskDrive tidak memberikan data, pakai LogicalDisk
+    if ($TotalStorageGB -eq 0) {
+        foreach ($Disk in $Disks) {
+            $TotalStorageGB += [math]::Round($Disk.Size / 1GB, 1)
+        }
+    }
+
+    # Free space tetap dari LogicalDisk (total semua partisi)
     $FreeStorageGB = 0
     $MaxDiskUsage = 0
-
     foreach ($Disk in $Disks) {
-        $TotalStorageGB += [math]::Round($Disk.Size / 1GB, 1)
         $FreeStorageGB += [math]::Round($Disk.FreeSpace / 1GB, 1)
         if ($Disk.Size -gt 0) {
             $pct = [math]::Round((($Disk.Size - $Disk.FreeSpace) / $Disk.Size) * 100, 1)
@@ -139,12 +151,27 @@ try {
     $DiagnosticData.freeStorageGB = $FreeStorageGB
     $DiagnosticData.diskUsage = $MaxDiskUsage
 
-    # Disk Type
+    # Disk Type - deteksi dari physical disk
     $DiagnosticData.diskType = "Unknown"
+    $DiskDetails = @()
     try {
-        $MediaType = Get-CimInstance -ClassName Win32_DiskDrive | Select-Object -First 1 -ExpandProperty MediaType
-        if ($MediaType -match "SSD|Solid State") { $DiagnosticData.diskType = "SSD" }
-        elseif ($MediaType -match "Fixed hard") { $DiagnosticData.diskType = "HDD" }
+        foreach ($pd in $PhysicalDisks) {
+            $type = "Unknown"
+            if ($pd.MediaType -match "SSD|Solid State") { $type = "SSD" }
+            elseif ($pd.MediaType -match "Fixed hard") { $type = "HDD" }
+            elseif ($pd.MediaType -match "NVMe") { $type = "NVMe SSD" }
+            $sizeGB = [math]::Round($pd.Size / 1GB, 0)
+            $DiskDetails += @{
+                model = $pd.Model
+                type = $type
+                sizeGB = $sizeGB
+            }
+            # Pakai type dari disk pertama untuk backward compatibility
+            if ($DiagnosticData.diskType -eq "Unknown" -or $type -ne "Unknown") {
+                $DiagnosticData.diskType = $type
+            }
+        }
+        $DiagnosticData.diskDetails = $DiskDetails
     } catch {}
 
     # Disk Health
@@ -351,6 +378,8 @@ try {
     if (-not ($DiagnosticData.startupPrograms -is [System.Collections.IEnumerable])) { $DiagnosticData.startupPrograms = @($DiagnosticData.startupPrograms) }
     if ($DiagnosticData.smartWarnings -eq $null) { $DiagnosticData.smartWarnings = @() }
     if (-not ($DiagnosticData.smartWarnings -is [System.Collections.IEnumerable])) { $DiagnosticData.smartWarnings = @($DiagnosticData.smartWarnings) }
+    if ($DiagnosticData.diskDetails -eq $null) { $DiagnosticData.diskDetails = @() }
+    if (-not ($DiagnosticData.diskDetails -is [System.Collections.IEnumerable])) { $DiagnosticData.diskDetails = @($DiagnosticData.diskDetails) }
     if ($DiagnosticData.userSymptoms -eq $null) { $DiagnosticData.userSymptoms = @() }
     if (-not ($DiagnosticData.userSymptoms -is [System.Collections.IEnumerable])) { $DiagnosticData.userSymptoms = @($DiagnosticData.userSymptoms) }
 

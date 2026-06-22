@@ -1,0 +1,249 @@
+﻿{
+    "gpuDriver":  "32.0.101.7085",
+    "cpuUsage":  35.5,
+    "gpuModel":  "Intel(R) Iris(R) Xe Graphics",
+    "packetLoss":  0,
+    "diskType":  "HDD",
+    "userSymptoms":  [
+
+                     ],
+    "bsodHistory":  [
+
+                    ],
+    "cpuModel":  "11th Gen Intel(R) Core(TM) i7-1165G7 @ 2.80GHz",
+    "importantServices":  [
+                              {
+                                  "name":  "Windows Update",
+                                  "status":  "Running"
+                              },
+                              {
+                                  "name":  "Security Center",
+                                  "status":  "Running"
+                              },
+                              {
+                                  "name":  "DNS Client",
+                                  "status":  "Running"
+                              },
+                              {
+                                  "name":  "SysMain",
+                                  "status":  "Running"
+                              },
+                              {
+                                  "name":  "Windows Defender",
+                                  "status":  "Running"
+                              },
+                              {
+                                  "name":  "Remote Procedure Call",
+                                  "status":  "Running"
+                              },
+                              {
+                                  "name":  "Plug and Play",
+                                  "status":  "Running"
+                              }
+                          ],
+    "smartWarnings":  [
+
+                      ],
+    "osVersion":  "Microsoft Windows 11 Pro",
+    "gpuTemperature":  0,
+    "startupPrograms":  [
+                            {
+                                "name":  "GoogleDriveFS",
+                                "enabled":  true
+                            },
+                            {
+                                "name":  "Free Download Manager",
+                                "enabled":  true
+                            },
+                            {
+                                "name":  "AgentSysinfo",
+                                "enabled":  true
+                            },
+                            {
+                                "name":  "OneDrive",
+                                "enabled":  true
+                            },
+                            {
+                                "name":  "GoogleDriveFS",
+                                "enabled":  true
+                            },
+                            {
+                                "name":  "Free Download Manager",
+                                "enabled":  true
+                            },
+                            {
+                                "name":  "ZeroTierUI",
+                                "enabled":  true
+                            },
+                            {
+                                "name":  "com.todesktop.25020447d4kq915",
+                                "enabled":  true
+                            },
+                            {
+                                "name":  "TeraBox",
+                                "enabled":  true
+                            },
+                            {
+                                "name":  "TeraBoxWeb",
+                                "enabled":  true
+                            },
+                            {
+                                "name":  "WingFTPTray",
+                                "enabled":  true
+                            },
+                            {
+                                "name":  "Teams",
+                                "enabled":  true
+                            },
+                            {
+                                "name":  "Discord",
+                                "enabled":  true
+                            },
+                            {
+                                "name":  "org.openvpn.client",
+                                "enabled":  true
+                            },
+                            {
+                                "name":  "Docker Desktop",
+                                "enabled":  true
+                            },
+                            {
+                                "name":  "MicrosoftEdgeAutoLaunch_7FF24C75E4979FAA030A25809E9BA6B9",
+                                "enabled":  true
+                            },
+                            {
+                                "name":  "GoogleChromeAutoLaunch_DEC8E65093D6B0DD992404D854B9016F",
+                                "enabled":  true
+                            },
+                            {
+                                "name":  "AssetAgent",
+                                "enabled":  true
+                            },
+                            {
+                                "name":  "Steam",
+                                "enabled":  true
+                            },
+                            {
+                                "name":  "GoogleDriveFS",
+                                "enabled":  true
+                            },
+                            {
+                                "name":  "Free Download Manager",
+                                "enabled":  true
+                            },
+                            {
+                                "name":  "AnyDesk",
+                                "enabled":  true
+                            },
+                            {
+                                "name":  "RustDesk Tray",
+                                "enabled":  true
+                            },
+                            {
+                                "name":  "Tailscale",
+                                "enabled":  true
+                            },
+                            {
+                                "name":  "SecurityHealth",
+                                "enabled":  true
+                            },
+                            {
+                                "name":  "RtkAudUService",
+                                "enabled":  true
+                            },
+                            {
+                                "name":  "MFNetworkScannerSelector",
+                                "enabled":  true
+                            },
+                            {
+                                "name":  "DpTsClnt",
+                                "enabled":  true
+                            },
+                            {
+                                "name":  "Seagull Drivers V3",
+                                "enabled":  true
+                            },
+                            {
+                                "name":  "Seagull Drivers",
+                                "enabled":  true
+                            },
+                            {
+                                "name":  "RazerCortex",
+                                "enabled":  true
+                            },
+                            {
+                                "name":  "CloudflareWARP",
+                                "enabled":  true
+                            }
+                        ],
+    "sfcResult":  "Not checked",
+    "networkLatency":  7,
+    "freeStorageGB":  220.29999999999998,
+    "recentErrors":  [
+                         {
+                             "date":  "2026-06-22 07:03:14",
+                             "message":  "Miniport Microsoft Wi-Fi Direct Virtual Adapter #2, {99b06553-9ac5-4c80-a99b-3c487d07cd35}, had event Fatal error: The miniport has failed a power transition to operational power",
+                             "source":  "Microsoft-Windows-NDIS"
+                         },
+                         {
+                             "date":  "2026-06-22 05:37:22",
+                             "message":  "Installation Failure: Windows failed to install the following update with error 0x80073D02: 9NKSQGP7F2NH-5319275A.WhatsAppDesktop.",
+                             "source":  "Microsoft-Windows-WindowsUpdateClient"
+                         },
+                         {
+                             "date":  "2026-06-22 05:37:20",
+                             "message":  "Installation Failure: Windows failed to install the following update with error 0x80073D02: 9N97ZCKPD60Q-38833FF26BA1D.UnigramPreview.",
+                             "source":  "Microsoft-Windows-WindowsUpdateClient"
+                         },
+                         {
+                             "date":  "2026-06-22 05:12:43",
+                             "message":  "Installation Failure: Windows failed to install the following update with error 0x80073D02: 9NTXGKQ8P7N0-MicrosoftWindows.CrossDevice.",
+                             "source":  "Microsoft-Windows-WindowsUpdateClient"
+                         },
+                         {
+                             "date":  "2026-06-22 05:10:54",
+                             "message":  "The Secure Boot update failed to update Boot Manager (2023) with error Secure Boot is not enabled on this machine.. For more information, please see https://go.microsoft.com/fwlink/?linkid=2169931",
+                             "source":  "Microsoft-Windows-TPM-WMI"
+                         },
+                         {
+                             "date":  "2026-06-22 05:10:54",
+                             "message":  "The Secure Boot update failed to update KEK 2023 with error Secure Boot is not enabled on this machine.. For more information, please see https://go.microsoft.com/fwlink/?linkid=2169931",
+                             "source":  "Microsoft-Windows-TPM-WMI"
+                         },
+                         {
+                             "date":  "2026-06-22 05:10:54",
+                             "message":  "The Secure Boot update failed to update 3P UEFI CA 2023 (DB) with error Secure Boot is not enabled on this machine.. For more information, please see https://go.microsoft.com/fwlink/?linkid=2169931",
+                             "source":  "Microsoft-Windows-TPM-WMI"
+                         },
+                         {
+                             "date":  "2026-06-22 05:10:54",
+                             "message":  "The Secure Boot update failed to update Option ROM CA 2023 (DB) with error Secure Boot is not enabled on this machine.. For more information, please see https://go.microsoft.com/fwlink/?linkid=2169931",
+                             "source":  "Microsoft-Windows-TPM-WMI"
+                         },
+                         {
+                             "date":  "2026-06-22 05:10:54",
+                             "message":  "The Secure Boot update failed to update Windows UEFI CA 2023 (DB) with error Secure Boot is not enabled on this machine.. For more information, please see https://go.microsoft.com/fwlink/?linkid=21699",
+                             "source":  "Microsoft-Windows-TPM-WMI"
+                         },
+                         {
+                             "date":  "2026-06-22 05:10:40",
+                             "message":  "Miniport Microsoft Wi-Fi Direct Virtual Adapter #2, {99b06553-9ac5-4c80-a99b-3c487d07cd35}, had event Fatal error: The miniport has failed a power transition to operational power",
+                             "source":  "Microsoft-Windows-NDIS"
+                         }
+                     ],
+    "computerName":  "NBPDE-NOC22",
+    "totalRAMMB":  16167,
+    "uptime":  "6 hari 18 jam 25 menit",
+    "osBuild":  "26200",
+    "criticalEvents":  0,
+    "diskHealth":  "OK",
+    "antivirusEnabled":  true,
+    "dismHealth":  "Not checked",
+    "cpuTemperature":  0,
+    "totalStorageGB":  2098.8,
+    "windowsUpdateStatus":  "4 updates pending",
+    "availableRAMMB":  1543,
+    "dnsStatus":  "OK",
+    "diskUsage":  92.8,
+    "cpuCores":  8
+}
