@@ -1,0 +1,237 @@
+﻿{
+    "gpuDriver":  "32.0.101.7026",
+    "cpuUsage":  8.3,
+    "osVersion":  "Microsoft Windows 11 Home Single Language",
+    "packetLoss":  0,
+    "diskType":  "HDD",
+    "userSymptoms":  [
+
+                     ],
+    "diskError153Count":  5,
+    "appCrash1002Last1h":  0,
+    "bsodHistory":  [
+
+                    ],
+    "cpuModel":  "12th Gen Intel(R) Core(TM) i5-12450HX",
+    "osBuild":  "26200",
+    "importantServices":  [
+                              {
+                                  "name":  "Windows Update",
+                                  "status":  "Running"
+                              },
+                              {
+                                  "name":  "Security Center",
+                                  "status":  "Running"
+                              },
+                              {
+                                  "name":  "DNS Client",
+                                  "status":  "Running"
+                              },
+                              {
+                                  "name":  "SysMain",
+                                  "status":  "Running"
+                              },
+                              {
+                                  "name":  "Windows Defender",
+                                  "status":  "Stopped"
+                              },
+                              {
+                                  "name":  "Remote Procedure Call",
+                                  "status":  "Running"
+                              },
+                              {
+                                  "name":  "Plug and Play",
+                                  "status":  "Running"
+                              }
+                          ],
+    "smartWarnings":  [
+
+                      ],
+    "diskError7Count":  0,
+    "gpuTemperature":  0,
+    "pagesPerSec":  0,
+    "startupPrograms":  [
+                            {
+                                "name":  "GenuineService",
+                                "enabled":  true
+                            },
+                            {
+                                "name":  "laragon",
+                                "enabled":  true
+                            },
+                            {
+                                "name":  "Ollama",
+                                "enabled":  true
+                            },
+                            {
+                                "name":  "LenovoVantageToolbar",
+                                "enabled":  true
+                            },
+                            {
+                                "name":  "OneDrive",
+                                "enabled":  true
+                            },
+                            {
+                                "name":  "Steam",
+                                "enabled":  true
+                            },
+                            {
+                                "name":  "EpicGamesLauncher",
+                                "enabled":  true
+                            },
+                            {
+                                "name":  "Opera Stable",
+                                "enabled":  true
+                            },
+                            {
+                                "name":  "Adobe Acrobat Synchronizer",
+                                "enabled":  true
+                            },
+                            {
+                                "name":  "MicrosoftEdgeAutoLaunch_855B8B08037EA344FA06C7FE8A211328",
+                                "enabled":  true
+                            },
+                            {
+                                "name":  "EPLTarget\\P0000000000000001",
+                                "enabled":  true
+                            },
+                            {
+                                "name":  "EPLTarget\\P0000000000000002",
+                                "enabled":  true
+                            },
+                            {
+                                "name":  "EPSDNMON",
+                                "enabled":  true
+                            },
+                            {
+                                "name":  "Microsoft.Lists",
+                                "enabled":  true
+                            },
+                            {
+                                "name":  "AnyDesk",
+                                "enabled":  true
+                            },
+                            {
+                                "name":  "ChaosUnifiedLogin",
+                                "enabled":  true
+                            },
+                            {
+                                "name":  "Start Chaos License Server",
+                                "enabled":  true
+                            },
+                            {
+                                "name":  "SecurityHealth",
+                                "enabled":  true
+                            },
+                            {
+                                "name":  "RtkAudUService",
+                                "enabled":  true
+                            },
+                            {
+                                "name":  "StartUp",
+                                "enabled":  true
+                            },
+                            {
+                                "name":  "DataCollectionAgentController",
+                                "enabled":  true
+                            },
+                            {
+                                "name":  "MTPW",
+                                "enabled":  true
+                            },
+                            {
+                                "name":  "iTunesHelper",
+                                "enabled":  true
+                            },
+                            {
+                                "name":  "EPPCCMON",
+                                "enabled":  true
+                            }
+                        ],
+    "kernelPower41Last24h":  0,
+    "networkLatency":  26,
+    "freeStorageGB":  334.1,
+    "diskQueueLength":  0.01,
+    "appCrash1000Last1h":  0,
+    "diskActiveTime":  0.6,
+    "recentErrors":  [
+                         {
+                             "eventId":  3502,
+                             "message":  "Device Disassociation (Unpairing) Failed.",
+                             "source":  "Microsoft-Windows-DeviceAssociationService",
+                             "date":  "2026-06-26 08:03:20"
+                         },
+                         {
+                             "eventId":  10010,
+                             "message":  "The server {8018F647-BF07-55BB-82BE-A2D7049F7CE4} did not register with DCOM within the required timeout.",
+                             "source":  "Microsoft-Windows-DistributedCOM",
+                             "date":  "2026-06-25 13:26:34"
+                         },
+                         {
+                             "eventId":  5005,
+                             "message":  "Intel(R) Wi-Fi 6 AX203 : Has encountered an internal error and has failed.",
+                             "source":  "Netwtw14",
+                             "date":  "2026-06-25 09:27:10"
+                         },
+                         {
+                             "eventId":  5002,
+                             "message":  "Intel(R) Wi-Fi 6 AX203 : Has determined that the network adapter is not functioning properly.",
+                             "source":  "Netwtw14",
+                             "date":  "2026-06-25 09:27:10"
+                         },
+                         {
+                             "eventId":  5005,
+                             "message":  "Intel(R) Wi-Fi 6 AX203 : Has encountered an internal error and has failed.",
+                             "source":  "Netwtw14",
+                             "date":  "2026-06-25 09:24:28"
+                         },
+                         {
+                             "eventId":  5002,
+                             "message":  "Intel(R) Wi-Fi 6 AX203 : Has determined that the network adapter is not functioning properly.",
+                             "source":  "Netwtw14",
+                             "date":  "2026-06-25 09:24:28"
+                         },
+                         {
+                             "eventId":  5005,
+                             "message":  "Intel(R) Wi-Fi 6 AX203 : Has encountered an internal error and has failed.",
+                             "source":  "Netwtw14",
+                             "date":  "2026-06-25 09:24:03"
+                         },
+                         {
+                             "eventId":  5002,
+                             "message":  "Intel(R) Wi-Fi 6 AX203 : Has determined that the network adapter is not functioning properly.",
+                             "source":  "Netwtw14",
+                             "date":  "2026-06-25 09:24:03"
+                         }
+                     ],
+    "computerName":  "LAPTOP-EG13GNRI",
+    "totalRAMMB":  24284,
+    "uptime":  "0 hari 0 jam 9 menit",
+    "diskDetails":  [
+                        {
+                            "sizeGB":  954,
+                            "model":  "TEAM TM8FPK001T",
+                            "type":  "HDD"
+                        },
+                        {
+                            "sizeGB":  477,
+                            "model":  "Micron MTFDKCD512QFM-1BD1AABLA",
+                            "type":  "HDD"
+                        }
+                    ],
+    "criticalEvents":  0,
+    "diskHealth":  "OK",
+    "antivirusEnabled":  true,
+    "sfcResult":  "Not checked",
+    "dismHealth":  "Not checked",
+    "cpuTemperature":  0,
+    "totalStorageGB":  1430.8,
+    "bugCheck1001Last24h":  0,
+    "windowsUpdateStatus":  "Up to date",
+    "smartReallocatedSectors":  0,
+    "gpuModel":  "Intel(R) UHD Graphics",
+    "availableRAMMB":  13341,
+    "dnsStatus":  "OK",
+    "diskUsage":  87.9,
+    "cpuCores":  12
+}
