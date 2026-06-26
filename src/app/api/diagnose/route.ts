@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
-import { db } from "@/lib/db";
+import { getSupabase } from "@/lib/supabase";
 import { analyzeDiagnostic, type DiagnosticData } from "@/lib/diagnostic-engine";
+import { analyzeSOC, type SOCData } from "@/lib/soc-engine";
+import { v4 as uuidv4 } from "uuid";
 
 // POST /api/diagnose - Menerima data diagnostik dan menganalisis
 export async function POST(request: NextRequest) {
-  // CORS headers (untuk PowerShell script yang kirim dari PC user)
   const headers = {
     "Access-Control-Allow-Origin": "*",
     "Access-Control-Allow-Methods": "POST, GET, OPTIONS",
@@ -22,7 +23,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Sanitize numeric values - ensure they are numbers, not strings
     const num = (v: unknown): number | undefined => {
       if (v === undefined || v === null || v === "") return undefined;
       const n = typeof v === "number" ? v : Number(v);
@@ -39,7 +39,7 @@ export async function POST(request: NextRequest) {
       return Boolean(v);
     };
 
-    // Parse diagnostic data
+    // Parse diagnostic data (Knowledge Base engine)
     const diagnosticData: DiagnosticData = {
       computerName: str(body.computerName) || "Unknown PC",
       osVersion: str(body.osVersion),
@@ -65,7 +65,6 @@ export async function POST(request: NextRequest) {
       dnsStatus: str(body.dnsStatus),
       bsodHistory: (() => {
         if (!body.bsodHistory) return undefined;
-        // Normalize: PowerShell ConvertTo-Json may send single object instead of array
         const raw = Array.isArray(body.bsodHistory) ? body.bsodHistory :
           (typeof body.bsodHistory === 'object' ? [body.bsodHistory] : undefined);
         if (!raw) return undefined;
@@ -91,70 +90,98 @@ export async function POST(request: NextRequest) {
       dismHealth: str(body.dismHealth),
     };
 
-    // Run analysis
+    // Run BOTH analysis engines
     const analysis = analyzeDiagnostic(diagnosticData);
 
-    // Save to database
-    const report = await db.diagnosticReport.create({
-      data: {
-        computerName: diagnosticData.computerName,
-        osVersion: diagnosticData.osVersion || null,
-        osBuild: diagnosticData.osBuild || null,
-        cpuModel: diagnosticData.cpuModel || null,
-        cpuCores: diagnosticData.cpuCores || null,
-        totalRAMMB: diagnosticData.totalRAMMB || null,
-        totalStorageGB: diagnosticData.totalStorageGB || null,
-        gpuModel: diagnosticData.gpuModel || null,
-        gpuDriver: diagnosticData.gpuDriver || null,
-        systemInfo: JSON.stringify({
-          uptime: diagnosticData.uptime,
-          cpuUsage: diagnosticData.cpuUsage,
-          cpuTemperature: diagnosticData.cpuTemperature,
-          availableRAMMB: diagnosticData.availableRAMMB,
-          freeStorageGB: diagnosticData.freeStorageGB,
-          gpuTemperature: diagnosticData.gpuTemperature,
-        }),
-        hardwareInfo: JSON.stringify({
-          diskType: diagnosticData.diskType,
-          diskHealth: diagnosticData.diskHealth,
-          smartWarnings: diagnosticData.smartWarnings,
-          diskUsage: diagnosticData.diskUsage,
-          networkLatency: diagnosticData.networkLatency,
-          packetLoss: diagnosticData.packetLoss,
-          dnsStatus: diagnosticData.dnsStatus,
-          antivirusEnabled: diagnosticData.antivirusEnabled,
-          windowsUpdateStatus: diagnosticData.windowsUpdateStatus,
-        }),
-        eventLogs: JSON.stringify({
-          bsodHistory: diagnosticData.bsodHistory,
-          criticalEvents: diagnosticData.criticalEvents,
-          recentErrors: diagnosticData.recentErrors,
-        }),
-        servicesStatus: JSON.stringify(diagnosticData.importantServices),
-        startupPrograms: JSON.stringify(diagnosticData.startupPrograms),
-        symptoms: JSON.stringify(diagnosticData.userSymptoms),
-        issuesFound: JSON.stringify(analysis.issues.map(i => ({
-          id: i.issue.id,
-          category: i.issue.category,
-          title: i.issue.title,
-          severity: i.issue.severity,
-          confidence: i.confidence,
-          matchedSymptoms: i.matchedSymptoms,
-          matchedIndicators: i.matchedIndicators,
-        }))),
-        solutions: JSON.stringify(analysis.issues.map(i => ({
-          issueTitle: i.issue.title,
-          description: i.issue.description,
-          solutions: i.issue.solutions,
-        }))),
-        severityScore: analysis.overallSeverity,
-        status: "completed",
-      },
+    // SOC Analysis (v4.1)
+    const socData: SOCData = {
+      ...diagnosticData,
+      pagesPerSec: num(body.pagesPerSec),
+      diskQueueLength: num(body.diskQueueLength),
+      diskActiveTime: num(body.diskActiveTime),
+      diskError7Count: num(body.diskError7Count),
+      diskError153Count: num(body.diskError153Count),
+      smartReallocatedSectors: num(body.smartReallocatedSectors),
+      kernelPower41Last24h: num(body.kernelPower41Last24h),
+      bugCheck1001Last24h: num(body.bugCheck1001Last24h),
+      appCrash1000Last1h: num(body.appCrash1000Last1h),
+      appCrash1002Last1h: num(body.appCrash1002Last1h),
+    };
+    const socAnalysis = analyzeSOC(socData);
+
+    // Save to Supabase
+    const reportId = uuidv4();
+    const supabase = getSupabase();
+
+    const { error: dbError } = await supabase.from('diagnostic_reports').insert({
+      id: reportId,
+      computer_name: diagnosticData.computerName,
+      os_version: diagnosticData.osVersion || null,
+      os_build: diagnosticData.osBuild || null,
+      cpu_model: diagnosticData.cpuModel || null,
+      cpu_cores: diagnosticData.cpuCores || null,
+      total_ram_mb: diagnosticData.totalRAMMB || null,
+      total_storage_gb: diagnosticData.totalStorageGB || null,
+      gpu_model: diagnosticData.gpuModel || null,
+      gpu_driver: diagnosticData.gpuDriver || null,
+      system_info: JSON.stringify({
+        uptime: diagnosticData.uptime,
+        cpuUsage: diagnosticData.cpuUsage,
+        cpuTemperature: diagnosticData.cpuTemperature,
+        availableRAMMB: diagnosticData.availableRAMMB,
+        freeStorageGB: diagnosticData.freeStorageGB,
+        gpuTemperature: diagnosticData.gpuTemperature,
+      }),
+      hardware_info: JSON.stringify({
+        diskType: diagnosticData.diskType,
+        diskHealth: diagnosticData.diskHealth,
+        smartWarnings: diagnosticData.smartWarnings,
+        diskUsage: diagnosticData.diskUsage,
+        networkLatency: diagnosticData.networkLatency,
+        packetLoss: diagnosticData.packetLoss,
+        dnsStatus: diagnosticData.dnsStatus,
+        antivirusEnabled: diagnosticData.antivirusEnabled,
+        windowsUpdateStatus: diagnosticData.windowsUpdateStatus,
+      }),
+      event_logs: JSON.stringify({
+        bsodHistory: diagnosticData.bsodHistory,
+        criticalEvents: diagnosticData.criticalEvents,
+        recentErrors: diagnosticData.recentErrors,
+      }),
+      services_status: JSON.stringify(diagnosticData.importantServices),
+      startup_programs: JSON.stringify(diagnosticData.startupPrograms),
+      symptoms: JSON.stringify(diagnosticData.userSymptoms),
+      issues_found: JSON.stringify(analysis.issues.map(i => ({
+        id: i.issue.id,
+        category: i.issue.category,
+        title: i.issue.title,
+        severity: i.issue.severity,
+        confidence: i.confidence,
+        matchedSymptoms: i.matchedSymptoms,
+        matchedIndicators: i.matchedIndicators,
+      }))),
+      solutions: JSON.stringify(analysis.issues.map(i => ({
+        issueTitle: i.issue.title,
+        description: i.issue.description,
+        solutions: i.issue.solutions,
+      }))),
+      severity_score: analysis.overallSeverity,
+      status: "completed",
+      soc_status: socAnalysis.status_keseluruhan,
+      soc_components: JSON.stringify(socAnalysis.komponen_bermasalah),
+      soc_root_cause: socAnalysis.akar_masalah,
+      soc_anomalies: JSON.stringify(socAnalysis.detail_anomali_ditemukan),
+      soc_recommendations: JSON.stringify(socAnalysis.rekomendasi_tindakan),
     });
+
+    if (dbError) {
+      console.error("Supabase insert error:", dbError);
+      // Jangan crash — tetap return analysis walau DB gagal
+    }
 
     return NextResponse.json({
       success: true,
-      reportId: report.id,
+      reportId,
       analysis: {
         issues: analysis.issues.map(i => ({
           id: i.issue.id,
@@ -171,6 +198,7 @@ export async function POST(request: NextRequest) {
         summary: analysis.summary,
         recommendations: analysis.recommendations,
       },
+      socAnalysis,
       computerInfo: {
         computerName: diagnosticData.computerName,
         osVersion: diagnosticData.osVersion,
@@ -191,23 +219,41 @@ export async function POST(request: NextRequest) {
 
 // GET /api/diagnose - Ambil semua laporan diagnostik
 export async function GET() {
+  const headers = {
+    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Methods": "POST, GET, OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type",
+  };
+
   try {
-    const reports = await db.diagnosticReport.findMany({
-      orderBy: { createdAt: "desc" },
-      take: 50,
-    });
+    const supabase = getSupabase();
+
+    const { data: reports, error } = await supabase
+      .from('diagnostic_reports')
+      .select('id, computer_name, os_version, cpu_model, total_ram_mb, severity_score, soc_status, status, created_at')
+      .order('created_at', { ascending: false })
+      .limit(50);
+
+    if (error) {
+      console.error("Supabase fetch error:", error);
+      return NextResponse.json(
+        { success: false, error: "Gagal mengambil laporan: " + error.message },
+        { status: 500, headers }
+      );
+    }
 
     return NextResponse.json({
       success: true,
-      reports: reports.map(r => ({
+      reports: (reports || []).map(r => ({
         id: r.id,
-        computerName: r.computerName,
-        osVersion: r.osVersion,
-        cpuModel: r.cpuModel,
-        totalRAMMB: r.totalRAMMB,
-        severityScore: r.severityScore,
+        computerName: r.computer_name,
+        osVersion: r.os_version,
+        cpuModel: r.cpu_model,
+        totalRAMMB: r.total_ram_mb,
+        severityScore: r.severity_score,
+        socStatus: r.soc_status,
         status: r.status,
-        createdAt: r.createdAt,
+        createdAt: r.created_at,
       })),
     }, { headers });
   } catch (error) {

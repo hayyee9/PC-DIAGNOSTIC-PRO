@@ -71,6 +71,24 @@ interface ComputerInfo {
   gpuModel: string;
 }
 
+interface SOCAnomaly {
+  ruleId: string;
+  severity: "KRITIS" | "PERINGATAN";
+  komponen: string;
+  deskripsi: string;
+  nilaiAktual: string | number;
+  ambangBatas: string;
+  korelasi?: string[];
+}
+
+interface SOCResult {
+  status_keseluruhan: "KRITIS" | "PERINGATAN" | "SEHAT";
+  komponen_bermasalah: string[];
+  akar_masalah: string;
+  detail_anomali_ditemukan: SOCAnomaly[];
+  rekomendasi_tindakan: string[];
+}
+
 interface DiagnosticForm {
   computerName: string;
   osVersion: string;
@@ -169,6 +187,7 @@ export default function DiagnosticApp() {
   const [expandedSolutions, setExpandedSolutions] = useState<Set<string>>(new Set());
   const [jsonUploadData, setJsonUploadData] = useState<string>("");
   const [showJsonUpload, setShowJsonUpload] = useState(false);
+  const [socResult, setSocResult] = useState<SOCResult | null>(null);
 
   const [form, setForm] = useState<DiagnosticForm>({
     computerName: "",
@@ -253,6 +272,7 @@ export default function DiagnosticApp() {
     setIsAnalyzing(true);
     setAnalysisResult(null);
     setComputerInfo(null);
+    setSocResult(null);
 
     try {
       const payload: Record<string, unknown> = {
@@ -300,6 +320,7 @@ export default function DiagnosticApp() {
       if (data.success) {
         setAnalysisResult(data.analysis);
         setComputerInfo(data.computerInfo);
+        setSocResult(data.socAnalysis || null);
         setReportId(data.reportId);
         setActiveView("dashboard");
         fetchHistory();
@@ -431,6 +452,7 @@ export default function DiagnosticApp() {
     setIsAnalyzing(true);
     setAnalysisResult(null);
     setComputerInfo(null);
+    setSocResult(null);
     try {
       const res = await fetch("/api/diagnose", {
         method: "POST",
@@ -442,6 +464,7 @@ export default function DiagnosticApp() {
       if (data.success) {
         setAnalysisResult(data.analysis);
         setComputerInfo(data.computerInfo);
+        setSocResult(data.socAnalysis || null);
         setReportId(data.reportId);
         setActiveView("dashboard");
         fetchHistory();
@@ -479,7 +502,7 @@ export default function DiagnosticApp() {
             <Button
               variant={activeView === "dashboard" ? "default" : "ghost"}
               size="sm"
-              onClick={() => { setAnalysisResult(null); setComputerInfo(null); setActiveView("dashboard"); }}
+              onClick={() => { setAnalysisResult(null); setComputerInfo(null); setSocResult(null); setActiveView("dashboard"); }}
             >
               <Monitor className="h-4 w-4 mr-1.5" />
               Dashboard
@@ -517,6 +540,91 @@ export default function DiagnosticApp() {
               </Card>
             ) : analysisResult ? (
               <>
+                {/* ==================== SOC STATUS CARD (v4.1) ==================== */}
+                {socResult && (
+                  <Card className={`border-2 ${socResult.status_keseluruhan === 'KRITIS' ? 'border-red-500 bg-red-50/50' : socResult.status_keseluruhan === 'PERINGATAN' ? 'border-amber-500 bg-amber-50/50' : 'border-green-500 bg-green-50/50'}`}>
+                    <CardHeader className="pb-3">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-1">
+                            <CardTitle className="text-xl flex items-center gap-2">
+                              {socResult.status_keseluruhan === 'KRITIS' && <XCircle className="h-7 w-7 text-red-500" />}
+                              {socResult.status_keseluruhan === 'PERINGATAN' && <AlertTriangle className="h-7 w-7 text-amber-500" />}
+                              {socResult.status_keseluruhan === 'SEHAT' && <CheckCircle2 className="h-7 w-7 text-green-500" />}
+                              Status Keseluruhan: {socResult.status_keseluruhan}
+                            </CardTitle>
+                          </div>
+                          <div className="flex flex-wrap gap-1.5 mt-2">
+                            {socResult.komponen_bermasalah.length > 0 ? socResult.komponen_bermasalah.map((k, i) => (
+                              <Badge key={i} variant={socResult.status_keseluruhan === 'SEHAT' ? 'outline' : 'destructive'} className={socResult.status_keseluruhan === 'PERINGATAN' ? 'bg-amber-600 text-white' : ''}>
+                                {k}
+                              </Badge>
+                            )) : (
+                              <Badge variant="outline" className="text-green-700 border-green-300">Semua Komponen Normal</Badge>
+                            )}
+                          </div>
+                        </div>
+                        <div className="text-right flex-shrink-0">
+                          <div className={`text-4xl font-black ${socResult.status_keseluruhan === 'KRITIS' ? 'text-red-600' : socResult.status_keseluruhan === 'PERINGATAN' ? 'text-amber-600' : 'text-green-600'}`}>
+                            {socResult.status_keseluruhan === 'KRITIS' ? '!!!' : socResult.status_keseluruhan === 'PERINGATAN' ? '!!' : 'OK'}
+                          </div>
+                          <p className={`text-xs font-semibold ${socResult.status_keseluruhan === 'KRITIS' ? 'text-red-500' : socResult.status_keseluruhan === 'PERINGATAN' ? 'text-amber-500' : 'text-green-500'}`}>
+                            SOC Threshold Analysis
+                          </p>
+                        </div>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div>
+                        <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Akar Masalah (Root Cause)</p>
+                        <p className={`text-sm leading-relaxed ${socResult.status_keseluruhan === 'KRITIS' ? 'text-red-800' : socResult.status_keseluruhan === 'PERINGATAN' ? 'text-amber-800' : 'text-green-800'}`}>
+                          {socResult.akar_masalah}
+                        </p>
+                      </div>
+                      {socResult.detail_anomali_ditemukan.length > 0 && (
+                        <div>
+                          <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Detail Anomali ({socResult.detail_anomali_ditemukan.length})</p>
+                          <div className="space-y-2">
+                            {socResult.detail_anomali_ditemukan.map((a, i) => (
+                              <div key={i} className={`rounded-lg p-3 text-sm ${a.severity === 'KRITIS' ? 'bg-red-100/80 border border-red-200' : 'bg-amber-100/80 border border-amber-200'}`}>
+                                <div className="flex items-start justify-between gap-2">
+                                  <div className="flex-1">
+                                    <span className="font-semibold">{a.deskripsi}</span>
+                                    <div className="text-xs text-slate-600 mt-1">
+                                      <span className="font-medium">Nilai:</span> {String(a.nilaiAktual)} | <span className="font-medium">Ambang:</span> {a.ambangBatas}
+                                    </div>
+                                    {a.korelasi && a.korelasi.length > 0 && (
+                                      <div className="text-xs text-slate-500 mt-1">
+                                        <span className="font-medium">Korelasi:</span> {a.korelasi.join(", ")}
+                                      </div>
+                                    )}
+                                  </div>
+                                  <Badge variant={a.severity === 'KRITIS' ? 'destructive' : 'secondary'} className={a.severity === 'PERINGATAN' ? 'bg-amber-600 text-white' : ''}>
+                                    {a.severity}
+                                  </Badge>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                      {socResult.rekomendasi_tindakan.length > 0 && (
+                        <div>
+                          <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Rekomendasi Tindakan</p>
+                          <ul className="space-y-1.5">
+                            {socResult.rekomendasi_tindakan.map((r, i) => (
+                              <li key={i} className="flex items-start gap-2 text-sm">
+                                <ChevronRight className="h-4 w-4 mt-0.5 text-emerald-600 flex-shrink-0" />
+                                <span>{r}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                )}
+
                 {/* Summary Card */}
                 <Card>
                   <CardHeader className="pb-3">
@@ -528,7 +636,7 @@ export default function DiagnosticApp() {
                           ) : (
                             <AlertTriangle className="h-6 w-6 text-amber-500" />
                           )}
-                          Hasil Analisis Diagnostik
+                          Hasil Analisis Knowledge Base
                         </CardTitle>
                         <CardDescription className="mt-1">{analysisResult.summary}</CardDescription>
                       </div>
@@ -706,12 +814,25 @@ export default function DiagnosticApp() {
                   </div>
                 )}
 
-                {analysisResult.issues.length === 0 && (
+                {analysisResult.issues.length === 0 && !socResult && (
                   <Card className="p-8 text-center">
                     <CheckCircle2 className="h-16 w-16 text-green-500 mx-auto mb-4" />
                     <h3 className="text-xl font-semibold text-slate-900 mb-2">Komputer dalam Kondisi Sehat!</h3>
                     <p className="text-slate-500 max-w-md mx-auto">
                       Berdasarkan data diagnostik yang diberikan, tidak ditemukan masalah signifikan. Pastikan untuk melakukan pemeriksaan rutin secara berkala.
+                    </p>
+                  </Card>
+                )}
+
+                {/* KB card saat SOC menemukan masalah tapi KB tidak — tampilkan pesan bridging */}
+                {analysisResult.issues.length === 0 && socResult && socResult.status_keseluruhan !== "SEHAT" && (
+                  <Card className="p-8 text-center border-amber-200 bg-amber-50/50">
+                    <AlertTriangle className="h-16 w-16 text-amber-500 mx-auto mb-4" />
+                    <h3 className="text-xl font-semibold text-slate-900 mb-2">Analisis Knowledge Base: Tidak Ada Pola Tercocok</h3>
+                    <p className="text-slate-500 max-w-md mx-auto">
+                      Knowledge Base tidak menemukan masalah berdasarkan pola gejala yang diketahui.
+                      Namun <span className="font-semibold text-amber-700">SOC Engine mendeteksi anomali numerik</span> di atas.
+                      Prioritaskan rekomendasi dari SOC Engine.
                     </p>
                   </Card>
                 )}
